@@ -1,6 +1,6 @@
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
-import { mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { mkdtemp, readdir, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { dirname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { isolateDesktopSettings, testDataEnvironment } from "../fixtures/desktop";
@@ -10,7 +10,7 @@ import { makePdf } from "../fixtures/pdf";
 let app: ElectronApplication;
 let page: Page;
 let data: string;
-let launchedAt = 0;
+let serverBefore = new Map<string, string>();
 const source = "# アプリで読む資料\n\n疲労限度と安全率について考えます。\n\n専用ウィンドウでも本文と付箋のつながりを保ちます。";
 async function launch() {
   const env: Record<string, string> = { ...Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)), ...testDataEnvironment(data), ENABLE_MOCK_PROVIDER: "true" };
@@ -19,6 +19,21 @@ async function launch() {
   page = await app.firstWindow();
   await page.waitForURL("fussenn://app/");
   await expect(page.getByRole("button", { name: /^資料を開く/ })).toBeVisible();
+}
+// The installed server, found from the executable so that it can be read before the app starts.
+function installedServer() {
+  const executable = process.env.FUSSENN_DESKTOP_EXE;
+  if (!executable) return resolve(".desktop", "server");
+  return process.platform === "darwin" ? resolve(dirname(executable), "..", "Resources", "server") : resolve(dirname(executable), "resources", "server");
+}
+async function serverFiles() {
+  const root = installedServer(), files = new Map<string, string>();
+  for (const entry of await readdir(root, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    const path = join(entry.parentPath, entry.name), info = await stat(path);
+    files.set(relative(root, path), `${info.size}:${info.mtimeMs}`);
+  }
+  return files;
 }
 async function api(path: string, method = "GET", body?: unknown) {
   return page.evaluate(async ({ path, method, body }) => {
@@ -36,7 +51,7 @@ async function closeNormally() {
   await expect.poll(() => { try { process.kill(processId, 0); return true; } catch { return false; } }).toBe(false);
 }
 
-test.beforeEach(async () => { data = await mkdtemp(join(tmpdir(), "fussenn-desktop-")); await isolateDesktopSettings(data); launchedAt = Date.now(); await launch(); });
+test.beforeEach(async () => { data = await mkdtemp(join(tmpdir(), "fussenn-desktop-")); await isolateDesktopSettings(data); serverBefore = await serverFiles(); await launch(); });
 test.afterEach(async () => {
   await app?.close().catch(() => {});
   // Electron/Node descendants can take a moment to release Windows file handles.
@@ -299,12 +314,11 @@ test("leaves the installed app files unchanged while it runs", async () => {
   await page.goto("fussenn://app/");
   await expect(page.getByRole("button", { name: /^資料を開く/ })).toBeVisible();
   const resources = (await app.evaluate(({ app }) => app.isPackaged ? process.resourcesPath : "")) || resolve(".desktop");
+  expect(await realpath(join(resources, "server"))).toBe(await realpath(installedServer()));
   await closeNormally();
-  const changed: string[] = [];
-  for (const entry of await readdir(join(resources, "server"), { recursive: true, withFileTypes: true })) {
-    const path = join(entry.parentPath, entry.name);
-    if (entry.isFile() && (await stat(path)).mtimeMs >= launchedAt) changed.push(path);
-  }
+  // Files added, removed or rewritten since before the app started.
+  const serverAfter = await serverFiles();
+  const changed = [...new Set([...serverBefore.keys(), ...serverAfter.keys()])].filter((file) => serverBefore.get(file) !== serverAfter.get(file));
   expect(changed).toEqual([]);
 });
 
