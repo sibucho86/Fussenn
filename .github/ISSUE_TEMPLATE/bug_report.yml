@@ -1,0 +1,32 @@
+name: 不具合の報告
+description: 再現手順と期待する動作を教えてください。
+body:
+  - type: markdown
+    attributes:
+      value: |
+        会話・原稿・認証情報・未編集のログを添付しないでください。セキュリティ問題はSECURITY.mdの非公開報告手順を使ってください。
+  - type: input
+    id: environment
+    attributes:
+      label: バージョンと環境
+      placeholder: Fussenn 0.2.4 / Windows 11 / デスクトップ版
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 架空のデータを使い、起きるまでの操作を順に記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作と実際の動作
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: 補足
+      description: 個人情報を除いたエラーメッセージや画像。添付前に内容を確認してください。

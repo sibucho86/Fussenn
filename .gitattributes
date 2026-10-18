@@ -1,0 +1,11 @@
+* text=auto
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ico binary
+*.icns binary
+# Preserve upstream bytes, including intentional blank final lines, for SHA-256.
+licenses/upstream/*.txt text eol=lf whitespace=-blank-at-eof

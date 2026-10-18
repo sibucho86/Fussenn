@@ -1,0 +1,19 @@
+name: 機能・改善の提案
+description: どんな場面で何ができると助かるかを教えてください。
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 困っていること・利用場面
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 希望する動作
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 現在の工夫・代替案

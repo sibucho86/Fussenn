@@ -1,0 +1,24 @@
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = realpathSync(join(dirname(fileURLToPath(import.meta.url)), ".."));
+const git = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
+if (git(["status", "--porcelain", "--untracked-files=all"]).trim()) throw new Error("Commit the reviewed files locally before creating a source archive. The archive contains HEAD only.");
+execFileSync(process.execPath, [join(root, "scripts", "license-report.mjs"), "--check"], { cwd: root, stdio: "inherit", windowsHide: true });
+execFileSync(process.execPath, [join(root, "scripts", "secrets-check.mjs")], { cwd: root, stdio: "inherit", windowsHide: true });
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+if (!/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(pkg.version)) throw new Error("Invalid version for source archive.");
+const revision = git(["rev-parse", "--short=12", "HEAD"]).trim();
+const directory = join(root, "release");
+mkdirSync(directory, { recursive: true });
+if (realpathSync(directory) !== directory) throw new Error("Refusing a redirected archive directory.");
+const name = `Fussenn-${pkg.version}-source-${revision}.zip`;
+const target = join(directory, name);
+if (existsSync(target)) throw new Error("This archive already exists; preserve it or move it before regenerating.");
+git(["archive", "--format=zip", `--prefix=Fussenn-${pkg.version}/`, `--output=${target}`, "HEAD"]);
+const sha = createHash("sha256").update(readFileSync(target)).digest("hex");
+writeFileSync(`${target}.sha256`, `${sha}  ${name}\n`);
+console.log(`Created release/${name} and its SHA-256 file. No Git history or user data is included; nothing was uploaded.`);

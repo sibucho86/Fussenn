@@ -1,0 +1,37 @@
+import { test, expect } from "./fixtures";
+import { docsImage } from "../fixtures/docs-image";
+
+test.use({ viewport: { width: 1600, height: 1000 } });
+test("mouse selection creates a contextual note and produces the README preview", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "理解を、余白に。" })).toBeVisible();
+  await page.screenshot({ path: docsImage("welcome.png") });
+  await page.getByLabel("メッセージ", { exact: true }).fill("MCPについて、全体像から教えて");
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  const root = page.locator('[data-message-id][data-status="complete"]').first();
+  await expect(root).toBeVisible();
+  const word = root.locator("strong").filter({ hasText: /^Resource$/ });
+  await word.scrollIntoViewIfNeeded();
+  const rect = (await word.boundingBox())!;
+  await page.mouse.move(rect.x, rect.y + rect.height / 2);
+  await page.mouse.down(); await page.mouse.move(rect.x + rect.width, rect.y + rect.height / 2, { steps: 10 }); await page.mouse.up();
+  await page.getByRole("button", { name: "付箋", exact: true }).click();
+  const note = page.getByTestId("floating-note");
+  await note.getByLabel("付箋のメモ").fill("Toolとの違いを、具体例で教えて");
+  await note.getByRole("button", { name: "AIに聞く", exact: true }).click();
+  await expect(note.getByTestId("note-message-assistant")).toContainText("デモ回答");
+  await expect(note.locator(".spin")).toHaveCount(0);
+  await page.locator(".canvas-scroll").evaluate((el) => el.scrollTo({ top: 0, behavior: "instant" }));
+  const header = (await note.locator(".note-drag-handle").boundingBox())!;
+  await page.mouse.move(header.x + 70, header.y + 20); await page.mouse.down();
+  await page.mouse.move(1304, 320, { steps: 20 }); await page.mouse.up();
+  await note.locator(".note-chat-history").evaluate((el) => el.scrollTo({ top: 0, behavior: "instant" }));
+  await page.locator(".canvas-scroll").evaluate((el) => el.scrollTo({ top: 0, behavior: "instant" }));
+  await expect(page.getByTestId("anchor-highlight").first()).toBeVisible();
+  await page.screenshot({ path: docsImage("screenshot.png") });
+  await note.getByRole("button", { name: "付箋の色を変更" }).click();
+  await note.getByRole("button", { name: "ブルー", exact: true }).click();
+  await expect(note.getByRole("group", { name: "付箋の色", exact: true })).toBeHidden();
+  await note.getByRole("button", { name: "付箋の色を変更" }).click();
+  await page.screenshot({ path: docsImage("note-colors.png") });
+});

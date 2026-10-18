@@ -1,0 +1,13 @@
+{
+  "source": "2f7fe928c3706f8713ca234500408745ce7446149f8af0ea30e8a7681242c415",
+  "generator": "98d8bc95412c04a91d1002efd896dc95b98389f9ffebcf2bd6dddf3fb2690128",
+  "renderer": "sharp 0.35.5",
+  "files": {
+    "desktop/icons/fussenn.png": "8c48e30b954e4af7d99d18916bbbfc5562281c186ce972432ddf1b76c521db3a",
+    "desktop/icons/fussenn.ico": "ec5cefc8cdb462e2961bfd6a0863f67667479b1ceb061f0264ef3ed59c739394",
+    "desktop/icons/fussenn.icns": "579ed822509028a8e5e14d7960d4bcdfc7f8d1c0ed728e7fc78c7493a9ee367d",
+    "public/brand/favicon.ico": "ec5cefc8cdb462e2961bfd6a0863f67667479b1ceb061f0264ef3ed59c739394",
+    "public/brand/fussenn-32.png": "2890ee665c46c4fc42a0bc87ab578073682ae9d99b4df37d2d3f246bdaae0bce",
+    "public/brand/fussenn-180.png": "6ba40940bf561a057274c53a6dceb652acd7d5f19ac6f07a0448caa10a0e153a"
+  }
+}

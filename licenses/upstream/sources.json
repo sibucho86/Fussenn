@@ -1,0 +1,33 @@
+[
+  {
+    "name": "drizzle-orm",
+    "version": "0.45.2",
+    "file": "drizzle-orm-0.45.2-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/drizzle-team/drizzle-orm/0.45.2/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "name": "client-only",
+    "version": "0.0.1",
+    "file": "react-MIT-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/facebook/react/v18.2.0/LICENSE",
+    "note": "The marker package declares MIT and identifies React as its upstream; this is the React project MIT notice.",
+    "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85"
+  },
+  {
+    "name": "@next/env",
+    "version": "16.3.8",
+    "file": "dotenv-16.3.1-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/motdotla/dotenv/v16.3.1/LICENSE",
+    "note": "Bundled dotenv dependency declared by @next/env 16.3.8.",
+    "sha256": "74b629b24865e1e83c5277ee84590b7937644d6fd959d0c7bdce758676cd2ced"
+  },
+  {
+    "name": "@next/env",
+    "version": "16.3.8",
+    "file": "dotenv-expand-10.0.0-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/motdotla/dotenv-expand/v10.0.0/LICENSE",
+    "note": "Bundled dotenv-expand dependency declared by @next/env 16.3.8.",
+    "sha256": "3726b9470c3a6b54e1ebcc1d802d37089b5a5fc97273b52b2cee578a4421ec45"
+  }
+]

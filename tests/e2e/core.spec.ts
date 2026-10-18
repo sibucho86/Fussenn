@@ -1,0 +1,105 @@
+import { test, expect, type Page } from "./fixtures";
+import type { ConversationDetail } from "../../src/lib/types";
+
+async function selectWord(page: Page, word: string) {
+  const root = page.locator('[data-message-id][data-status="complete"]').first();
+  await root.scrollIntoViewIfNeeded();
+  await root.evaluate((element, word) => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode as Text;
+      const index = text.data.indexOf(word);
+      if (index < 0) continue;
+      const range = document.createRange(); range.setStart(text, index); range.setEnd(text, index + word.length);
+      const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
+      element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })); return;
+    }
+    throw new Error(`Text not found: ${word}`);
+  }, word);
+  await page.getByRole("button", { name: "付箋", exact: true }).click();
+}
+test("select → floating memo → contextual chat → isolated main → reload", async ({ page, request }) => {
+  const browserErrors: string[] = [];
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "理解を、余白に。" })).toBeVisible();
+  await page.getByLabel("メッセージ", { exact: true }).fill("MCPについて、全体像から教えて");
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await expect(page.locator('[data-message-id][data-status="complete"]')).toHaveCount(1);
+  await selectWord(page, "Resource");
+  const note = page.getByTestId("floating-note").first();
+  await expect(note).toBeVisible();
+  await expect(page.getByTestId("anchor-highlight").first()).toBeVisible();
+  const initial = await note.boundingBox();
+  const header = note.locator(".note-drag-handle");
+  const headerBox = (await header.boundingBox())!;
+  await page.mouse.move(headerBox.x + 80, headerBox.y + 20);
+  await page.mouse.down(); await page.mouse.move(headerBox.x + 170, headerBox.y + 60, { steps: 12 }); await page.mouse.up();
+  const moved = (await note.boundingBox())!;
+  expect(Math.abs(moved.x - initial!.x)).toBeGreaterThan(30);
+  await note.getByLabel("付箋のメモ").fill("PRIVATE_SIDE_TOKEN: Toolとの違いを具体例で");
+  await expect(note.getByText("保存済み", { exact: true })).toBeVisible();
+  const originalColor = await note.locator("..").evaluate((el) => getComputedStyle(el).backgroundColor);
+  await note.getByRole("button", { name: "付箋の色を変更" }).click();
+  await note.getByRole("button", { name: "ブルー", exact: true }).click();
+  await expect(note.getByRole("group", { name: "付箋の色", exact: true })).toBeHidden();
+  await expect(note.locator("..")).toHaveAttribute("data-note-color", "blue");
+  expect(await note.locator("..").evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(originalColor);
+  await expect(page.getByTestId("anchor-highlight").first()).toHaveAttribute("data-note-color", "blue");
+  await expect(page.locator(".note-connectors")).toHaveAttribute("data-note-color", "blue");
+  const beforeResize = (await note.boundingBox())!;
+  await page.mouse.move(beforeResize.x + beforeResize.width - 1, beforeResize.y + beforeResize.height - 1);
+  await page.mouse.down(); await page.mouse.move(beforeResize.x + beforeResize.width + 49, beforeResize.y + beforeResize.height + 59, { steps: 10 }); await page.mouse.up();
+  await expect.poll(async () => (await note.boundingBox())!.width).toBeGreaterThan(beforeResize.width + 30);
+  await note.getByRole("button", { name: "AIに聞く", exact: true }).click();
+  await expect(note.getByTestId("note-message-assistant")).toContainText("Resource");
+  await expect(note.getByTestId("note-message-assistant")).toContainText("デモ回答");
+  await note.getByLabel("付箋で追加質問").fill("PRIVATE_FOLLOW_UP: もう一つ例を教えて");
+  await note.getByRole("button", { name: "追加質問を送信" }).click();
+  await expect(note.getByTestId("note-message-assistant")).toHaveCount(2);
+  await expect(note.getByTestId("note-message-assistant").last()).toContainText("デモ回答");
+  await note.getByRole("button", { name: "付箋を折りたたむ" }).click();
+  await expect(note.getByLabel("付箋で追加質問")).toHaveCount(0);
+  await page.getByLabel("メッセージ", { exact: true }).fill("[context]");
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await expect(page.locator('[data-message-id][data-status="complete"]')).toHaveCount(2);
+  const mainAnswer = page.locator('[data-message-id]').last();
+  await expect(mainAnswer).not.toContainText("PRIVATE_SIDE_TOKEN");
+  await expect(mainAnswer).not.toContainText("PRIVATE_FOLLOW_UP");
+  const id = new URL(page.url()).searchParams.get("chat")!;
+  const saved = await (await request.get(`/api/conversations/${id}`)).json() as ConversationDetail;
+  expect(saved.notes[0].messages).toHaveLength(4);
+  expect(saved.notes[0].contextSnapshot.messages).toHaveLength(2);
+  expect(saved.notes[0].layout.collapsed).toBe(true);
+  expect(saved.notes[0].layout.width).toBeGreaterThan(350);
+  expect(saved.notes[0].color).toBe("blue");
+  const invalidColor = await request.patch(`/api/notes/${saved.notes[0].id}`, { data: { color: "not-a-color" } });
+  expect(invalidColor.status()).toBe(400);
+  await page.reload();
+  await expect(page.getByTestId("floating-note")).toHaveCount(1);
+  await expect(note.locator("..")).toHaveAttribute("data-note-color", "blue");
+  expect((await note.locator("..").boundingBox())!.width).toBeCloseTo(saved.notes[0].layout.width, 0);
+  await expect(page.getByTestId("anchor-highlight").first()).toBeAttached();
+  const colorButton = note.getByRole("button", { name: "付箋の色を変更" });
+  await colorButton.focus();
+  await page.keyboard.press("Enter");
+  await expect(note.getByRole("button", { name: "ブルー", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(colorButton).toBeFocused();
+  await expect(colorButton).toHaveAttribute("aria-expanded", "false");
+  await note.getByRole("button", { name: "付箋を開く" }).click();
+  await expect(note.getByTestId("note-message-assistant")).toHaveCount(2);
+  await selectWord(page, "Tool");
+  await expect(page.getByTestId("floating-note")).toHaveCount(2);
+  await expect(page.getByTestId("floating-note").last().locator("..")).toHaveAttribute("data-note-color", "yellow");
+  expect(browserErrors).toEqual([]);
+});
+
+test("local API rejects external origins and keeps secrets out of settings", async ({ request }) => {
+  const result = await request.post("/api/conversations", { headers: { Origin: "https://example.com" }, data: { providerKind: "mock", model: "mock-demo" } });
+  expect(result.status()).toBe(403);
+  const settings = await (await request.get("/api/settings")).json();
+  expect(settings).not.toHaveProperty("OPENAI_API_KEY");
+  const invalid = await request.patch("/api/settings", { data: { OPENAI_API_KEY: "do-not-store" } });
+  expect(invalid.status()).toBe(400);
+});
