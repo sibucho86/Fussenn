@@ -72,7 +72,7 @@ npm run desktop:dist
 
 ## 残る確認
 
-- Intel Macでのビルド・実機検証、GitHub上のCI実行。
+- Intel Macの画面を使った実機操作。ビルドと配布版テストは、2026-10-18にGitHub ActionsのIntel Mac（`macos-15-intel`）とRosetta 2で成功しています。
 - Apple Developerの正式な署名・公証と、ダウンロードしたアプリとしてのGatekeeper確認。現成果物は正式署名なしで、厳密な署名検証とGatekeeper検査は不合格、公証チケットもありません。quarantineやOS保護設定は変更していません。
 - 実Codexのログイン・AI生成、実OSの日本語IMEによる変換中の終了、Dockからの再表示は今回の確認範囲に含みません。日本語の入力・保存と、合成したcompositionイベントによる原稿保持は確認しています。
 

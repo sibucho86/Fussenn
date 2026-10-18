@@ -67,7 +67,7 @@ npm run test:desktop:packaged
 npm run desktop:dist
 ```
 
-`test:desktop:packaged` はWindows・Mac・Linuxが対象です。画面のないLinux環境では `xvfb-run -a npm run test:desktop:packaged` のように仮想ディスプレイ上で実行します。配布版を作業フォルダの外の一時ディレクトリへコピーして検証し、終了後に片付けます。開発用node_modulesが不足ファイルを補ってしまう状況を避けるためです。`test:desktop` は通常、開発用Electronを起動します。個別の配布版を検証する場合は `FUSSENN_DESKTOP_EXE` に実際の実行ファイルを指定します。
+`test:desktop:packaged` はWindows・Mac・Linuxが対象です。画面のないLinux環境では `xvfb-run -a npm run test:desktop:packaged` のように仮想ディスプレイ上で実行します。Linuxでは展開したアプリ（`release/linux-unpacked`）を検証し、AppImageそのものは起動しません。Ubuntu 24.04以降の標準設定ではAppArmorが非特権ユーザー名前空間を制限し、Electronのサンドボックスが使えない場合があるため、CIではこの制限を緩めて実行しています。AppImageからの起動と、標準設定のUbuntuでの起動は確認していません。配布版を作業フォルダの外の一時ディレクトリへコピーして検証し、終了後に片付けます。開発用node_modulesが不足ファイルを補ってしまう状況を避けるためです。`test:desktop` は通常、開発用Electronを起動します。個別の配布版を検証する場合は `FUSSENN_DESKTOP_EXE` に実際の実行ファイルを指定します。
 
 Windowsの導入・更新・アンインストールは [インストーラーの検証手順](windows-installer-test.md) を参照してください。`test:desktop:installer` は、登録情報と保存先を分けた検証専用インストーラーでデータの引き継ぎを確認します。
 
@@ -86,15 +86,15 @@ FUSSENN_DESKTOP_EXE="$PWD/release/mac-arm64/Fussenn.app/Contents/MacOS/Fussenn" 
 
 Intel Macでは `release/mac/Fussenn.app/Contents/MacOS/Fussenn` を指定します。
 
-`desktop:prepare` は通常のブラウザ版 `.next` とは別に `.next-desktop` へビルドします。`.desktop` に配布用ファイルを集約し、`release` に成果物を作ります。いずれも生成物です。Next.jsが必要とするサーバー依存とOS/CPUに合った公式Nodeバイナリを同梱し、NodeのSHA-256を公式配布一覧と照合します。
+`desktop:prepare` は通常のブラウザ版 `.next` とは別に `.next-desktop` へビルドします。配布版の内部サーバーは、表示したページのキャッシュをメモリだけに置き、インストールしたアプリのファイルを変更しません。`.desktop` に配布用ファイルを集約し、`release` に成果物を作ります。いずれも生成物です。Next.jsが必要とするサーバー依存とOS/CPUに合った公式Nodeバイナリを同梱し、NodeのSHA-256を公式配布一覧と照合します。
 
-配布物名は `Fussenn-<version>-<os>-<arch>.<ext>` です。Windowsでは `Fussenn-0.2.4-win-x64.exe`、Apple Silicon Macでは `Fussenn-0.2.4-mac-arm64.dmg` などを生成し、Macのアプリ名は `Fussenn.app` です。
+配布物名は `Fussenn-<version>-<os>-<arch>.<ext>` です。Windowsでは `Fussenn-0.2.4-win-x64.exe`、Apple Silicon Macでは `Fussenn-0.2.4-mac-arm64.dmg` などを生成し、Macのアプリ名は `Fussenn.app` です。LinuxではAppImageの慣例に合わせ、CPU名が `x86_64` の `Fussenn-0.2.4-linux-x86_64.AppImage` になります。
 
 アイコンは [専用の元SVG](branding.md) から生成したICO・ICNS・PNGを使います。Windowsでは署名だけを省略して製品情報を設定し、生成したEXEとインストーラーの埋め込みアイコン・製品名・バージョンを自動検査します。
 
 ## Mac対応の範囲
 
-Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Macのメニュー・キーボード操作を実装しています。`.github/workflows/desktop.yml` はWindows x64、macOS arm64、macOS x64、Linux x64の各runnerで配布版テストとパッケージ生成を行う定義です。ブラウザ版のテストは `.github/workflows/checks.yml` でWindowsとLinuxを対象にしています。リポジトリをリモートへ公開しておらず、CIはまだ実行していません。
+Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Macのメニュー・キーボード操作を実装しています。`.github/workflows/desktop.yml` はWindows x64、macOS arm64、macOS x64、Linux x64の各runnerで配布版テストとパッケージ生成を行う定義です。ブラウザ版のテストは `.github/workflows/checks.yml` でWindowsとLinuxを対象にしています。2026-10-18、非公開のGitHubリポジトリで両方を実行し、すべてのジョブが成功しました。非公開リポジトリではMacのrunnerにLinuxの約10倍の料金がかかるため、非公開の間はデスクトップのビルドをプルリクエストでは行わず、手動実行時だけ行います。CIで作るテスト用の配布物（未署名）は3日で削除されます。
 
 以下の2026-09-22〜23の結果は、旧名称SideNote AIでの検証記録です。
 
@@ -102,13 +102,13 @@ Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Ma
 
 実機ではOSの保存ダイアログによる日本語名のZIP保存・キャンセル、Aboutのバージョン0.2.4と専用アイコン、同梱ライセンスの表示、実際のCmd+Qと再起動後の本文保持を確認しました。DMGとZIPから取り出したアプリのファイル・シンボリックリンク2,120件は内容と権限が一致しています。詳細と再現手順は [Macの検証記録](mac-validation.md) を参照してください。
 
-2026-10-18、名称変更後のコードでIntel（x64）版を、Apple Silicon上のRosetta 2を使って検証しました。setup・check・prepare・pack・distが成功し、配布版テスト11件が成功しています。アプリ本体・同梱Node・SQLiteはx86_64です。この検証で、画面の準備前に閉じると保存の確認を待ち続けて終了できない問題を見つけ、修正しました。Rosetta 2は実機のIntel Macと同一ではありません。
+2026-10-18、名称変更後のコードでIntel（x64）版を、Apple Silicon上のRosetta 2を使って検証しました。setup・check・prepare・pack・distが成功し、配布版テスト11件が成功しています。アプリ本体・同梱Node・SQLiteはx86_64です。この検証で、画面の準備前に閉じると保存の確認を待ち続けて終了できない問題を見つけ、修正しました。Rosetta 2は実機のIntel Macと同一ではありません。同日、GitHub ActionsのIntel Mac（`macos-15-intel`）でも、ビルドと配布版テストの成功を確認しました。
 
-**Intel Mac実機での確認、Apple Developerの正式な署名・公証は未実施です。** 現在のMac成果物にはElectron由来のad-hoc署名が残っていますが、リソースを含む厳密な署名検証とGatekeeper判定には通っていません。保護設定やquarantineは変更していません。現状のMacパッケージ設定はローカル検証用で、一般配布の準備完了とは扱いません。
+**Apple Developerの正式な署名・公証は未実施です。** Intel Macでの画面を使った実機操作も確認していません。現在のMac成果物にはElectron由来のad-hoc署名が残っていますが、リソースを含む厳密な署名検証とGatekeeper判定には通っていません。保護設定やquarantineは変更していません。現状のMacパッケージ設定はローカル検証用で、一般配布の準備完了とは扱いません。
 
 ## 検証状況と公開準備
 
-WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Intel Macの実機確認、正式な署名・公証、GitHub上でのCI実行は残っています。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
+WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Intel Mac・Linuxの画面を使った実機操作と、正式な署名・公証は残っています。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
 
 ## 実装の境界
 

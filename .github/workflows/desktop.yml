@@ -70,8 +70,8 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Fussenn-${{ runner.os }}-${{ matrix.arch }}
-          # Unsigned test builds, about 1 GB per run. Private repositories include
-          # only 500 MB of artifact storage, charged by the hour.
+          # Unsigned test builds, about 1 GB per run. GitHub Free includes
+          # 500 MB of artifact storage for private repositories, accrued hourly.
           retention-days: 3
           path: |
             release/*.exe
