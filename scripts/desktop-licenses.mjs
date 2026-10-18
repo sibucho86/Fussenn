@@ -93,9 +93,9 @@ export function prepareDesktopLicenses(root, resources, electronDist) {
     if (name === "@next/env") {
       if (pkg.version !== next.version) throw new Error("Review the @next/env upstream license after upgrading Next.js.");
       // Next.js ships license.md; find it by name so case-sensitive file systems (Linux) match too.
-      const nextLicense = readdirSync(join(root, "node_modules", "next")).find((file) => /^licen[cs]e(?:\.md|\.txt)?$/i.test(file));
-      if (!nextLicense) throw new Error("Review the Next.js license file after upgrading Next.js.");
-      files.push(copy(join(root, "node_modules", "next", nextLicense), `${folder}/LICENSE.next.txt`));
+      const nextLicenses = readdirSync(join(root, "node_modules", "next")).filter((file) => /^licen[cs]e(?:\.md|\.txt)?$/i.test(file));
+      if (nextLicenses.length !== 1) throw new Error("Review the Next.js license file after upgrading Next.js.");
+      files.push(copy(join(root, "node_modules", "next", nextLicenses[0]), `${folder}/LICENSE.next.txt`));
       hasPackageNotice = true;
       if (!supplements.some((item) => item.name === name && item.version === pkg.version)) throw new Error("Review @next/env bundled dotenv notices after upgrading.");
     }
