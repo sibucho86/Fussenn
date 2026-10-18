@@ -78,10 +78,11 @@ it.skipIf(process.platform !== "win32")("exercises a large workspace for ten min
       await index.getByLabel("付箋を検索", { exact: true }).fill("KEY-000");
       await browserExpect(index.getByTestId("note-index-item")).toHaveCount(1);
       await index.getByTestId("note-index-item").click();
-      // The list closes once the note is open. Until then the page behind it is inert, and a
-      // note that is already open would accept the typing below without receiving it.
+      // The list closes once the note is open, and focus then moves to the note. Typing earlier
+      // reaches the inert page behind the list, or loses the caret to that focus change.
       await browserExpect(index).toBeHidden();
       const note = page.locator(`section[data-note-id="${target.notes[0]}"]`);
+      await browserExpect(note).toBeFocused();
       const saved = page.waitForResponse((response) => response.url().endsWith(`/api/notes/${target.notes[0]}`) && response.request().method() === "PATCH");
       await note.getByLabel("付箋のメモ", { exact: true }).fill(`連続利用の保存確認 ${cycles}`);
       expect((await saved).ok()).toBe(true);

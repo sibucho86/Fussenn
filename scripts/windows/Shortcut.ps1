@@ -50,6 +50,8 @@ public static class FussennShortcut {
     }
     public static void Write(string path, string target, string arguments, string directory, string description, string icon, int index, int show) {
         var link = (IShellLinkW)new ShellLink();
+        // Update an existing shortcut in place, so settings made by the user (such as a hotkey) stay.
+        if (System.IO.File.Exists(path)) ((IPersistFile)link).Load(path, 0);
         link.SetPath(target); link.SetArguments(arguments); link.SetWorkingDirectory(directory);
         link.SetDescription(description); link.SetIconLocation(icon, index); link.SetShowCmd(show);
         ((IPersistFile)link).Save(path, true);
