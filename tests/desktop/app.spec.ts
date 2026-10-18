@@ -1,5 +1,5 @@
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
@@ -10,6 +10,7 @@ import { makePdf } from "../fixtures/pdf";
 let app: ElectronApplication;
 let page: Page;
 let data: string;
+let launchedAt = 0;
 const source = "# アプリで読む資料\n\n疲労限度と安全率について考えます。\n\n専用ウィンドウでも本文と付箋のつながりを保ちます。";
 async function launch() {
   const env: Record<string, string> = { ...Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)), ...testDataEnvironment(data), ENABLE_MOCK_PROVIDER: "true" };
@@ -35,7 +36,7 @@ async function closeNormally() {
   await expect.poll(() => { try { process.kill(processId, 0); return true; } catch { return false; } }).toBe(false);
 }
 
-test.beforeEach(async () => { data = await mkdtemp(join(tmpdir(), "fussenn-desktop-")); await isolateDesktopSettings(data); await launch(); });
+test.beforeEach(async () => { data = await mkdtemp(join(tmpdir(), "fussenn-desktop-")); await isolateDesktopSettings(data); launchedAt = Date.now(); await launch(); });
 test.afterEach(async () => {
   await app?.close().catch(() => {});
   // Electron/Node descendants can take a moment to release Windows file handles.
@@ -288,6 +289,23 @@ test("extracts Japanese PDF text using bundled resources and retains pages after
   const backup = await api("backups/export");
   expect(backup.body.version).toBe(3); expect(backup.body.data.document_sources[0].format).toBe("pdf");
   await closeNormally();
+});
+
+test("leaves the installed app files unchanged while it runs", async () => {
+  // A signed Mac app must not change after installation, and on Windows deep cache paths next to
+  // the app made the next update fail once they passed the 260-character limit.
+  await page.goto("fussenn://app/settings");
+  await expect(page.getByRole("region", { name: "バックアップと復元" })).toBeVisible();
+  await page.goto("fussenn://app/");
+  await expect(page.getByRole("button", { name: /^資料を開く/ })).toBeVisible();
+  const resources = (await app.evaluate(({ app }) => app.isPackaged ? process.resourcesPath : "")) || resolve(".desktop");
+  await closeNormally();
+  const changed: string[] = [];
+  for (const entry of await readdir(join(resources, "server"), { recursive: true, withFileTypes: true })) {
+    const path = join(entry.parentPath, entry.name);
+    if (entry.isFile() && (await stat(path)).mtimeMs >= launchedAt) changed.push(path);
+  }
+  expect(changed).toEqual([]);
 });
 
 test("stops its private server when the desktop process crashes and can restart", async () => {
