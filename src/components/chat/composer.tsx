@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { ArrowUp, LoaderCircle } from "lucide-react";
 
-export function Composer({ onSend, busy, compact = false, placeholder = "気になっていることを聞いてみましょう…", draft }: {
-  onSend: (text: string) => Promise<boolean | void>; busy: boolean; compact?: boolean; placeholder?: string;
+export function Composer({ onSend, busy, compact = false, placeholder = "気になっていることを聞いてみましょう…", draft, readOnly = false }: {
+  onSend: (text: string) => Promise<boolean | void>; busy: boolean; compact?: boolean; placeholder?: string; readOnly?: boolean;
   draft?: { text: string; onChange: (text: string) => void };
 }) {
   const [localText, setLocalText] = useState("");
@@ -18,7 +18,7 @@ export function Composer({ onSend, busy, compact = false, placeholder = "気に�
     finally { setSending(false); }
   }
   return <form className={`composer ${compact ? "compact" : ""}`} onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-    <textarea aria-label={compact ? "付箋で追加質問" : "メッセージ"} value={text} placeholder={placeholder} rows={compact ? 1 : 2} maxLength={20_000}
+    <textarea aria-label={compact ? "付箋で追加質問" : "メッセージ"} value={text} placeholder={placeholder} rows={compact ? 1 : 2} maxLength={20_000} readOnly={readOnly}
       onChange={(e) => setText(e.target.value)} onKeyDown={(e) => {
         if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); void submit(); }
       }} />

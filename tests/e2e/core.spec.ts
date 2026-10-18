@@ -103,3 +103,18 @@ test("local API rejects external origins and keeps secrets out of settings", asy
   const invalid = await request.patch("/api/settings", { data: { OPENAI_API_KEY: "do-not-store" } });
   expect(invalid.status()).toBe(400);
 });
+
+test("keeps the message box read-only until the opened conversation has loaded", async ({ page, request }) => {
+  // The box is replaced when the conversation arrives, so text typed earlier would be lost.
+  const chat: ConversationDetail = await (await request.post("/api/conversations", { data: { providerKind: "mock", model: "mock-demo" } })).json();
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(`**/api/conversations/${chat.id}`, async (route) => { if (route.request().method() === "GET") await held; await route.continue(); });
+  await page.goto(`/?chat=${chat.id}`);
+  const message = page.getByLabel("メッセージ", { exact: true });
+  await expect(message).not.toBeEditable();
+  release();
+  await message.fill("読み込みの後も残る文章");
+  await expect(message).toBeEditable();
+  await expect(message).toHaveValue("読み込みの後も残る文章");
+});
