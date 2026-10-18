@@ -19,17 +19,15 @@ function Read-RegistryValues([string]$Path) {
     foreach ($name in ($key.GetValueNames() | Sort-Object)) { $values[$name] = $key.GetValue($name) }
     return $values
 }
+. (Join-Path $PSScriptRoot 'Shortcut.ps1')
 function Read-Shortcut([string]$Path) {
     if (!(Test-Path -LiteralPath $Path)) { return $null }
-    $shell = New-Object -ComObject WScript.Shell
-    try {
-        $link = $shell.CreateShortcut($Path)
-        return [ordered]@{
-            path = $Path; target = $link.TargetPath; arguments = $link.Arguments
-            icon = $link.IconLocation; workingDirectory = $link.WorkingDirectory
-            sha256 = Read-Sha256 $Path
-        }
-    } finally { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($shell) }
+    $link = Read-FussennShortcut $Path
+    return [ordered]@{
+        path = $Path; target = $link.target; arguments = $link.arguments
+        icon = $link.icon; workingDirectory = $link.workingDirectory
+        sha256 = Read-Sha256 $Path
+    }
 }
 
 $desktop = [Environment]::GetFolderPath('DesktopDirectory')
