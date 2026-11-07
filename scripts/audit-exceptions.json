@@ -1,18 +1,11 @@
 {
   "exceptions": [
     {
-      "advisory": "GHSA-vfj7-8cjw-p6xm",
-      "package": "braces",
-      "path": "eslint-config-next 16.3.8 > @next/eslint-plugin-next > fast-glob 3.3.1 > micromatch 4.0.8 > braces 3.0.3",
-      "reason": "開発時のESLintだけが、ESLint設定の固定パターン（settings.next.rootDir）を展開するために使う。配布物には含まれず、外部からの入力を処理しない。2026-10-15時点で修正版はない。",
-      "reviewBy": "2027-01-15"
-    },
-    {
-      "advisory": "GHSA-hp3w-g68c-fv3c",
-      "package": "sprintf-js",
-      "path": "electron-builder 26.15.3 > app-builder-lib > @electron/get 3.1.0 > global-agent 3.0.0 > roarr 2.15.4 > sprintf-js 1.1.3",
-      "reason": "パッケージ作成時のElectron取得で、ELECTRON_GET_USE_PROXYを設定した場合だけ読み込まれるログ整形用の依存。配布物には含まれない。2026-10-15時点で修正版はない。",
-      "reviewBy": "2027-01-15"
+      "advisory": "GHSA-g3hv-75wg-m249",
+      "package": "minimatch",
+      "path": "electron-builder 26.18.0 > app-builder-lib > minimatch 10.2.6 / @electron/universal 2.0.3 > minimatch 9.0.9; eslint-config-next 16.4.5 > @typescript-eslint/typescript-estree 8.70.0 > minimatch 10.2.6",
+      "reason": "パッケージ作成（electron-builder）と開発時のESLintだけが、設定にある固定のglobパターンを展開するために使う。配布物には含まれず、外部からの入力を処理しない。修正版は11.0.1以降のメジャー版だけで、これらの依存が受け付ける範囲（^9・^10）には2026-11-07時点で修正版がない。",
+      "reviewBy": "2027-02-07"
     }
   ]
 }

@@ -12,7 +12,7 @@ PDF本体・画像・元のレイアウトは保存せず、抽出した本文�
 
 ## 実装と保存
 
-[Mozilla PDF.js](https://mozilla.github.io/pdf.js/) 6.3.289を画面側のWorkerで使い、`getTextContent` で各ページの本文を抽出します。PDFのバイナリはサーバーや外部サービスへ送らず、保存操作で抽出済みの本文だけをFussennのローカルサーバーへ渡します。取り込み操作だけではAIへ送信しません。参考：[PDF.jsのAPI](https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib.html)。
+[Mozilla PDF.js](https://mozilla.github.io/pdf.js/) 6.5.438を画面側のWorkerで使い、`getTextContent` で各ページの本文を抽出します。PDFのバイナリはサーバーや外部サービスへ送らず、保存操作で抽出済みの本文だけをFussennのローカルサーバーへ渡します。取り込み操作だけではAIへ送信しません。参考：[PDF.jsのAPI](https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib.html)。
 
 Worker・日本語などのCMap・標準フォント・ライセンスを `scripts/pdf-assets.mjs` で `public/pdfjs` に配置します。`npm run dev` と `npm run build` 時に実行し、デスクトップにも同梱します。CDNからの取得は不要です。抽出ではPDFの画像を描画せず、WasmとフォントのDOM埋め込みを無効にしています。解析は60秒で中止し、ファイルの分割を案内します。
 
