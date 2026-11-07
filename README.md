@@ -20,7 +20,7 @@ AIの回答だけでなく、Markdown・テキスト・PDFの資料にも付箋�
 
 ## まずローカルで試す
 
-Node.js **22.13以上**とnpmが必要です。開発・Windows/Mac検証の基準はNode.js **24.15.0**です。
+Node.js **22.13以上**とnpmが必要です。開発・Windows/Mac検証の基準はNode.js **24.22.2**です。
 
 ```sh
 npm run setup

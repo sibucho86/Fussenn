@@ -50,7 +50,7 @@ ENABLE_MOCK_PROVIDER=false
 
 ## 開発とパッケージ作成
 
-Node.js 22.13以上とnpmが必要です。確認に使ったバージョンはNode.js 24.15.0です。
+Node.js 22.13以上とnpmが必要です。確認に使ったバージョンはNode.js 24.22.2です。配布版には、ビルドしたNode.jsと同じ版を同梱します。
 
 ```sh
 npm run setup
