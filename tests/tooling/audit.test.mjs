@@ -41,6 +41,14 @@ test("rejects unreviewed advisories, stale records and incomplete records", () =
   assert.match(errors.join("\n"), /Stale audit exception: GHSA-aaaa-bbbb-cccc braces/);
 });
 
+test("treats an advisory in the shipped Electron runtime like a production one", () => {
+  const full = report(["electron", "GHSA-jjjj-kkkk-mmmm"]);
+  const { errors, accepted } = evaluateAudit({ production: empty, full, exceptions: [record({ advisory: "GHSA-jjjj-kkkk-mmmm", package: "electron" })], today: "2026-11-07" });
+  assert.equal(accepted.length, 0);
+  assert.match(errors.join("\n"), /^Shipped runtime advisory: GHSA-jjjj-kkkk-mmmm electron/m);
+  assert.match(errors.join("\n"), /^Audit exceptions cannot cover the shipped runtime: GHSA-jjjj-kkkk-mmmm electron/m);
+});
+
 test("an npm error report cannot pass as an empty audit", () => {
   assert.throws(() => evaluateAudit({ production: { error: { code: "ENOTFOUND" } }, full: empty, exceptions: [], today: "2026-10-15" }), /Unexpected npm audit report/);
 });

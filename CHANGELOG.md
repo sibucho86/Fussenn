@@ -2,6 +2,11 @@
 
 ## 未リリース
 
+- 2026-10-18以降に公表された脆弱性に対応するため、Next.jsを16.4.5、zodを4.6.7、undiciを7.30.2、Electronを44.10.2へ更新。Next.jsでは、画像最適化APIと `use cache` の遠隔コード実行（critical）が修正されている。本番依存とElectronの既知の指摘は0件。
+- デスクトップ版に同梱するNode.jsと、CI・検証の基準を、24.15.0から24.22.2へ更新。24.22.1はセキュリティリリース。
+- 依存監査で、Electronの指摘を本番依存と同じ扱いに変更。Electronは開発用の依存として入るが、デスクトップ版の実行環境として配布物に含まれるため。例外として記録することもできない。
+- React 19.3.1、Drizzle ORM 0.45.4、OpenAI SDK 7.53.0、PDF.js 6.5.438、CodeMirror、electron-builder 26.18.0、Playwright 1.65.0、Vitest 5.1.0などを更新。TypeScript 7・ESLint 10などのメジャー更新は見送り。
+- 報告されなくなった監査の例外（braces・sprintf-js）を削除し、修正版がメジャー版だけの開発用のminimatchを期限付きで記録。
 - 製品名をSideNote AIからFussennへ変更。package名は `fussenn`、作者表記は `Fussenn contributors`、アプリIDは `app.fussenn.desktop`。AIの回答ラベルは製品名を付けず「AI」に統一。
 - 新規の保存先を `~/.fussenn/fussenn.db` に変更。新フォルダがなければ旧 `~/.sidenote-ai` を、使用するフォルダに `fussenn.db` がなければ既存の `sidenote.db` をそのまま使い、データは移動しない。両フォルダがある場合は新フォルダを優先し、旧フォルダには触れない。新名へ移す場合はアプリとブラウザ版を終了し、旧フォルダをコピーせず名前変更する。中のDB名はそのままでよい。
 - 保存先の環境変数を `FUSSENN_DATA_DIR` に変更。旧 `SIDENOTE_DATA_DIR` も受け付け、新名を優先する。`npm run desktop` も `.env.local` から同じ規則で読み取る。テスト・検証用は `FUSSENN_DESKTOP_EXE`・`FUSSENN_DISABLE_AUTOMATIC_BACKUP`・`FUSSENN_UPDATE_DOCS_IMAGES`・`FUSSENN_SOAK_MS`、内部用は `FUSSENN_DESKTOP_TOKEN`・`FUSSENN_SERVER_RUNNING`・`FUSSENN_DESKTOP_BUILD` に変更。

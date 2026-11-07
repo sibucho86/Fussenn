@@ -1,6 +1,9 @@
 // Production dependencies may not have any known advisory. A development-only
 // advisory without an upstream fix is accepted only while it is recorded with a
 // reason and a review date, so an exception cannot outlive its justification.
+// Electron is a development dependency for npm, but its binary is the desktop app's
+// runtime and ships in every installer, so its advisories follow the production rule.
+const shippedRuntime = new Set(["electron"]);
 const advisoryId = (via) => via.url?.match(/GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/i)?.[0] ?? `npm-${via.source}`;
 
 function advisories(report) {
@@ -22,13 +25,16 @@ export function evaluateAudit({ production, full, exceptions, today }) {
   const shipped = advisories(production), all = advisories(full);
   const describe = (a) => `${a.advisory} ${a.package} (${a.severity}): ${a.title}`;
   for (const a of shipped.values()) errors.push(`Production dependency advisory: ${describe(a)}`);
+  for (const [key, a] of all) if (!shipped.has(key) && shippedRuntime.has(a.package)) errors.push(`Shipped runtime advisory: ${describe(a)}`);
   for (const record of exceptions) {
     if (!/^GHSA-/.test(record.advisory ?? "") || !record.package || !record.reason?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(record.reviewBy ?? "")) {
       errors.push(`Incomplete audit exception: ${JSON.stringify(record)}`);
+    } else if (shippedRuntime.has(record.package)) {
+      errors.push(`Audit exceptions cannot cover the shipped runtime: ${record.advisory} ${record.package}`);
     } else records.set(`${record.advisory}|${record.package}`, record);
   }
   for (const [key, a] of all) {
-    if (shipped.has(key)) continue;
+    if (shipped.has(key) || shippedRuntime.has(a.package)) continue;
     const record = records.get(key);
     if (!record) errors.push(`Unreviewed development advisory: ${describe(a)}. Update the dependency or record a reviewed exception.`);
     else if (record.reviewBy < today) errors.push(`Audit exception expired on ${record.reviewBy}: ${describe(a)}. Check for an upstream fix and review the record again.`);
