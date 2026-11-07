@@ -100,10 +100,14 @@ async function extract(file, index) {
     if (!executable) throw new Error(`No application executable in payload: ${basename(file)}`);
     if (index === 1) verifyWindowsBranding(executable, join(icons, "fussenn.ico"), pkg);
     const asarHash = hash(join(output, "resources", "app.asar"));
+    // A dependency or runtime update leaves app.asar unchanged, so the bundled Node.js and the
+    // server build (its BUILD_ID changes on every build) also identify the payload.
+    const runtimeHash = hash(join(output, "resources", "runtime", "node.exe")), buildIdHash = hash(join(output, "resources", "server", ".next-desktop", "BUILD_ID"));
     // Preserve all application bytes. Only the filename changes so NSIS cannot
     // detect/terminate the user's Fussenn process when checking running apps.
     renameSync(executable, join(output, `${productName}.exe`));
-    return { directory: output, asarHash, executableHash: hash(join(output, `${productName}.exe`)) };
+    const executableHash = hash(join(output, `${productName}.exe`));
+    return { directory: output, asarHash, runtimeHash, buildIdHash, executableHash, fingerprint: [asarHash, runtimeHash, buildIdHash, executableHash].join(":") };
   }
   throw new Error(`No application payload found: ${basename(file)}`);
 }
@@ -134,6 +138,8 @@ function checkInstalled(version, payload) {
   }
   assert.equal(hash(executable), payload.executableHash);
   assert.equal(hash(join(installed, "resources", "app.asar")), payload.asarHash);
+  assert.equal(hash(join(installed, "resources", "runtime", "node.exe")), payload.runtimeHash);
+  assert.equal(hash(join(installed, "resources", "server", ".next-desktop", "BUILD_ID")), payload.buildIdHash);
   verifyDesktopLicenses(join(installed, "resources"));
   return state;
 }
@@ -205,7 +211,7 @@ try {
   cache = join(initial.localAppData, `${packageName}-updater`);
   assert(!existsSync(cache), "Test installer cache already exists");
   const previous = await extract(inputs[0], 0), current = await extract(inputs[1], 1);
-  assert.notEqual(previous.asarHash, current.asarHash, "The two application payloads are identical");
+  assert.notEqual(previous.fingerprint, current.fingerprint, "The two application payloads are identical");
   const oldInstaller = await wrap(previous, "0.0.1"), newInstaller = await wrap(current, "0.0.2");
   checkpoint("built two isolated installers from distinct original app payloads");
 
