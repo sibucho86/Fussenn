@@ -29,6 +29,10 @@ auth.json
 *.key
 *.p12
 *.pfx
+# Apple signing: notarization API keys, certificates and certificate requests
+*.p8
+*.cer
+*.certSigningRequest
 *.sqlite
 *.sqlite3
 *.sqlite-shm

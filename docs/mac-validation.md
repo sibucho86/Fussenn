@@ -1,8 +1,25 @@
 # Macの検証記録
 
-検証結果と成果物は、旧名称SideNote AIのときの記録です。再現手順は現行のFussennに合わせています。
+2026-09-22〜23の検証結果と成果物は、旧名称SideNote AIのときの記録です。2026-11-08の署名の確認と、再現手順は、現行のFussennのものです。
 
 2026-09-22〜23、Apple Silicon（arm64）・macOS 26.6.2で、ブラウザ版とMacデスクトップ版を検証しました。Mac用DMG・ZIPを生成し、展開したアプリの自動テストとネイティブ画面の操作を確認しました。正式な署名・公証は未設定で、一般配布の準備完了とは扱いません。
+
+## 2026-11-08 Developer ID署名の確認
+
+Apple Silicon（arm64）・macOS 26.6.2・Node.js 24.22.2・Electron 44.10.2で、Developer ID Application証明書による署名を確認しました。証明書の名前とチームIDは記録しません。公証は行っていません。
+
+| 確認 | 結果 |
+| --- | --- |
+| 署名つきビルド | `FUSSENN_MAC_SIGN=1` でpack・distが成功。DMGとZIPを生成 |
+| アプリの署名 | 厳密な署名検証（`codesign --verify --deep --strict`）に合格。Developer IDの署名・タイムスタンプ・Hardened Runtimeあり。権限はJITだけ。Electronのヘルパー4つも同じ権限 |
+| アプリ内のコード | Electronのヘルパー・フレームワーク、同梱のNode.js、SQLiteのネイティブモジュール2件を含むMach-O 17件すべてが、アプリと同じチームの署名・タイムスタンプ・Hardened Runtimeつき。権限はJITだけか、なし |
+| 配布物 | DMGのチェックサム検証に成功。DMGとZIPから取り出したアプリも、厳密な署名検証とビルド時と同じ検査に合格。ビルドしたアプリと、DMG・ZIPから取り出したアプリの3,069項目（フォルダを含む）は、内容・権限・シンボリックリンクが一致 |
+| 配布版テスト | 署名したアプリで12件成功。DMGから取り出し、日本語・空白を含むパスに置いたアプリでも12件成功 |
+| Gatekeeper | 「公証されていないDeveloper ID」として拒否。公証の後に再確認する |
+| 検査の確認 | 未署名のアプリを拒否。同梱のNode.jsにデバッグ用の権限（get-task-allow）を足して封印し直したアプリも拒否。後者は `codesign --verify --deep --strict` には合格する |
+| 署名の省略 | プルリクエストと判定され、electron-builderが署名を省いたビルドは、検査で止まり、DMG・ZIPを作らない |
+
+ライブラリの検証を有効にしたまま、同梱のNode.jsがJITの権限だけでサーバーを起動し、SQLiteを読み込めることを確認しました。
 
 ## 環境と確認方法
 
@@ -68,12 +85,13 @@ npm run test:desktop:packaged
 npm run desktop:dist
 ```
 
-現行版の配布物は `Fussenn-<version>-mac-arm64.dmg`・`Fussenn-<version>-mac-arm64.zip`、アプリは `Fussenn.app` です。DMG/ZIP生成後は、展開した `Fussenn.app/Contents/MacOS/Fussenn` を `FUSSENN_DESKTOP_EXE` に指定して `npm run test:desktop` を実行します。テストは保存先を分離します。ネイティブ画面を別途確認するときも、検証用の `FUSSENN_DATA_DIR` を指定してください。
+署名する場合は、Developer ID Application証明書が入ったMacで、packとdistに `FUSSENN_MAC_SIGN=1` を指定します。詳細は [デスクトップ版の説明](desktop.md#macの署名と公証) を参照してください。現行版の配布物は `Fussenn-<version>-mac-arm64.dmg`・`Fussenn-<version>-mac-arm64.zip`、アプリは `Fussenn.app` です。DMG/ZIP生成後は、展開した `Fussenn.app/Contents/MacOS/Fussenn` を `FUSSENN_DESKTOP_EXE` に指定して `npm run test:desktop` を実行します。テストは保存先を分離します。ネイティブ画面を別途確認するときも、検証用の `FUSSENN_DATA_DIR` を指定してください。
 
 ## 残る確認
 
 - Intel Macの画面を使った実機操作。ビルドと配布版テストは、2026-10-18にGitHub ActionsのIntel Mac（`macos-15-intel`）とRosetta 2で成功しています。
-- Apple Developerの正式な署名・公証と、ダウンロードしたアプリとしてのGatekeeper確認。現成果物は正式署名なしで、厳密な署名検証とGatekeeper検査は不合格、公証チケットもありません。quarantineやOS保護設定は変更していません。
+- 公証と、ダウンロードしたアプリとしてのGatekeeper確認。署名は2026-11-08に確認しましたが、公証チケットはまだありません。quarantineやOS保護設定は変更していません。
+- 署名したIntel（x64）版の確認。JITだけの権限で動くことは、Apple Siliconでだけ確かめています。
 - 実Codexのログイン・AI生成、実OSの日本語IMEによる変換中の終了、Dockからの再表示は今回の確認範囲に含みません。日本語の入力・保存と、合成したcompositionイベントによる原稿保持は確認しています。
 
 GitHubへの公開・リリース配布、普段利用するアプリのインストール先への上書きは行っていません。

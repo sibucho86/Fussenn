@@ -7,10 +7,17 @@ import { verifyDesktopLicenses } from "./desktop-licenses.mjs";
 import { verifyIcons } from "./icons.mjs";
 import { verifyWindowsBranding } from "./desktop-branding.mjs";
 import { windowsInstallerOptions } from "./desktop-installer-options.mjs";
+import { macSigning, notaryCredentials, verifyMacSignature } from "./desktop-mac-signing.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const icons = join(root, "desktop", "icons");
+const macSign = macSigning(process.env, process.platform);
+if (macSign.notarize) console.log(`Notarization will upload the app to Apple, authenticated with ${notaryCredentials(process.env)}.`);
+let macSignatureVerified = false;
+// electron-builder can skip signing with only a warning, for example in a pull-request build. The afterSign
+// check then fails; this guard also stops the build before any installer if a version skips afterSign too.
+const requireMacSignature = () => { if (macSign.forceCodeSigning && !macSignatureVerified) throw new Error("FUSSENN_MAC_SIGN=1 was set, but electron-builder did not sign the app. See its log above."); };
 verifyIcons();
 const info = JSON.parse(readFileSync(join(root, ".desktop", "build-info.json"), "utf8"));
 if (info.platform !== process.platform || info.arch !== process.arch) throw new Error("Prepare and package on the same OS/CPU.");
@@ -47,13 +54,20 @@ await build({ targets: platform.createTarget(target, Arch[process.arch]), publis
   },
   afterSign: async (context) => {
     if (process.platform === "win32") verifyWindowsBranding(join(context.appOutDir, `${pkg.productName}.exe`), join(icons, "fussenn.ico"), pkg);
+    if (process.platform === "darwin" && macSign.forceCodeSigning) {
+      const files = verifyMacSignature(join(context.appOutDir, `${pkg.productName}.app`), { notarized: macSign.notarize });
+      macSignatureVerified = true;
+      console.log(`Verified the signature of the app and its ${files} Mach-O files.`);
+    }
   },
+  artifactBuildStarted: async () => requireMacSignature(),
   artifactBuildCompleted: async (artifact) => {
     if (process.platform === "win32" && artifact.file?.endsWith(".exe")) verifyWindowsBranding(artifact.file, join(icons, "fussenn.ico"), pkg, "installer");
   },
   artifactName: "Fussenn-${version}-${os}-${arch}.${ext}",
   win: { target: "nsis", icon: join(icons, "fussenn.ico"), signExecutable: false },
   nsis: windowsInstallerOptions(icons),
-  mac: { category: "public.app-category.productivity", target: ["dmg", "zip"], icon: join(icons, "fussenn.icns"), identity: null, hardenedRuntime: false },
+  mac: { category: "public.app-category.productivity", target: ["dmg", "zip"], icon: join(icons, "fussenn.icns"), ...macSign },
   linux: { target: "AppImage", category: "Office", icon: join(icons, "fussenn.png") },
 } });
+requireMacSignature();

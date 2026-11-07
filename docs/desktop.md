@@ -92,6 +92,33 @@ Intel Macでは `release/mac/Fussenn.app/Contents/MacOS/Fussenn` を指定しま
 
 アイコンは [専用の元SVG](branding.md) から生成したICO・ICNS・PNGを使います。Windowsでは署名だけを省略して製品情報を設定し、生成したEXEとインストーラーの埋め込みアイコン・製品名・バージョンを自動検査します。
 
+## Macの署名と公証
+
+Macの配布物は、通常は署名しません。CIや他の開発者の環境でも、証明書なしでビルドできます。署名するときは、Developer ID Application証明書と秘密鍵が入ったMacで、packとdistに `FUSSENN_MAC_SIGN=1` を指定します。
+
+```sh
+npm run desktop:prepare
+FUSSENN_MAC_SIGN=1 npm run desktop:pack
+npm run test:desktop:packaged
+FUSSENN_MAC_SIGN=1 npm run desktop:dist
+```
+
+- 証明書はキーチェーンから自動で選びます。複数ある場合は `CSC_NAME` で指定します。証明書の名前とチームIDは、リポジトリに書きません。証明書が見つからなければビルドを止め、未署名の配布物は作りません。
+- 署名したアプリは、保護機能つきの実行環境（Hardened Runtime）で動きます。与える権限は、JavaScriptの実行時コンパイル（`com.apple.security.cs.allow-jit`）だけです。Electronと、サーバーを動かす同梱のNode.jsが必要とします。設定は `scripts/desktop-entitlements.mac.plist` にあります。ライブラリの検証は有効のままです。同梱のNode.jsとSQLiteのネイティブモジュールにも、アプリと同じ署名をするためです。
+- 署名の後、ビルドの中で自動で検査します。アプリ全体の厳密な署名検証に加えて、アプリ内のすべてのMach-O（Electronのヘルパーとフレームワーク、同梱のNode.js、SQLite）を1つずつ調べます。どれも、アプリと同じチームのDeveloper IDの署名・タイムスタンプ・Hardened Runtimeを持ち、権限が設定の範囲内である必要があります。アプリ本体・ヘルパー・同梱のNode.jsには、設定どおりの権限があることも確かめます。検査に通らなければ、DMGやZIPを作る前にビルドを止めます。
+- 公証（notarization）はアプリをAppleへ送信するため、`FUSSENN_MAC_NOTARIZE=1` を指定したときだけ行います。Appleの認証情報が環境変数にあっても、指定がなければ送信しません。認証にはApp Store Connect APIキーを使います。キーファイル（.p8）はリポジトリの外に置き、次の3つを指定します。
+
+```sh
+export APPLE_API_KEY="<.p8ファイルのパス>" APPLE_API_KEY_ID="<キーID>" APPLE_API_ISSUER="<Issuer ID>"
+FUSSENN_MAC_SIGN=1 FUSSENN_MAC_NOTARIZE=1 npm run desktop:dist
+```
+
+electron-builderが受け付けるApple ID（`APPLE_ID` など）や、notarytoolのキーチェーンプロファイル（`APPLE_KEYCHAIN_PROFILE`）も使えます。ただし、認証情報は1種類だけにします。複数の種類があるときや不足があるときは、署名の前に止めます。公証の後は、公証チケットの添付（ステープル）とGatekeeperの判定も検査します。
+
+electron-builderのログには、署名に使った証明書の名前（組織名とチームID）と指紋が表示されます。証明書が見つからないときは、キーチェーンにある証明書の一覧も表示されます。ログを共有するときは、これらを伏せてください。
+
+公証していない署名済みアプリは、ダウンロードして開くとGatekeeperに止められます。一般に配布するには公証が必要です。Windowsの署名には、まだ対応していません。
+
 ## Mac対応の範囲
 
 Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Macのメニュー・キーボード操作を実装しています。`.github/workflows/desktop.yml` はWindows x64、macOS arm64、macOS x64、Linux x64の各runnerで配布版テストとパッケージ生成を行う定義です。ブラウザ版のテストは `.github/workflows/checks.yml` でWindowsとLinuxを対象にしています。2026-10-18、非公開のGitHubリポジトリで両方を実行し、すべてのジョブが成功しました。非公開リポジトリではMacのrunnerにLinuxの約10倍の料金がかかるため、非公開の間はデスクトップのビルドをプルリクエストでは行わず、手動実行時だけ行います。CIで作るテスト用の配布物（未署名）は3日で削除されます。
@@ -104,11 +131,11 @@ Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Ma
 
 2026-10-18、名称変更後のコードでIntel（x64）版を、Apple Silicon上のRosetta 2を使って検証しました。setup・check・prepare・pack・distが成功し、配布版テスト11件が成功しています。アプリ本体・同梱Node・SQLiteはx86_64です。この検証で、画面の準備前に閉じると保存の確認を待ち続けて終了できない問題を見つけ、修正しました。Rosetta 2は実機のIntel Macと同一ではありません。同日、GitHub ActionsのIntel Mac（`macos-15-intel`）でも、ビルドと配布版テストの成功を確認しました。
 
-**Apple Developerの正式な署名・公証は未実施です。** Intel Macでの画面を使った実機操作も確認していません。現在のMac成果物にはElectron由来のad-hoc署名が残っていますが、リソースを含む厳密な署名検証とGatekeeper判定には通っていません。保護設定やquarantineは変更していません。現状のMacパッケージ設定はローカル検証用で、一般配布の準備完了とは扱いません。
+2026-11-08、Apple Silicon Macで、Developer IDによる署名を確認しました。署名したDMG・ZIPのアプリは厳密な署名検証に通り、配布版テスト12件が成功しています。**公証はまだ行っていません。** そのためGatekeeperの判定は「公証されていないDeveloper ID」で、ダウンロードしたアプリとしては開けません。署名を指定しないビルドとCIの成果物は、これまでどおり未署名です。Electron由来のad-hoc署名だけが残り、厳密な署名検証とGatekeeper判定には通りません。Intel Macでの画面を使った実機操作と、署名したIntel版の確認は、まだ行っていません。保護設定やquarantineは変更していません。公証するまでは、一般配布の準備完了とは扱いません。
 
 ## 検証状況と公開準備
 
-WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Intel Mac・Linuxの画面を使った実機操作と、正式な署名・公証は残っています。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
+WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Intel Mac・Linuxの画面を使った実機操作、Macの公証、Windowsの署名は残っています。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
 
 ## 実装の境界
 

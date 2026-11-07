@@ -64,7 +64,7 @@ try {
   const files = new Set(git(["ls-files", "--cached", "--others", "--exclude-standard", "-z"]).split("\0").filter(Boolean));
   for (const file of files) {
     if (file.split("/").some((part) => part === ".." || part === ".git") || isAbsolute(file)) throw new Error("Unsafe tracked path.");
-    if (file !== ".env.example" && /(?:^|\/)(?:\.env[^/]*|desktop\.env|auth\.json|node_modules|\.tmp|\.desktop|\.next(?:-desktop)?|\.fussenn|\.sidenote-ai|\.codex|release|out|coverage|test-results|playwright-report|data)(?:\/|$)|\.(?:db(?:-shm|-wal)?|sqlite3?(?:-shm|-wal)?|(?:fussenn|sidenote)\.json(?:\.partial)?|pem|key|p12|pfx|log)$/i.test(file)) throw new Error(`Private/generated file is a publication candidate: ${file}`);
+    if (file !== ".env.example" && /(?:^|\/)(?:\.env[^/]*|desktop\.env|auth\.json|node_modules|\.tmp|\.desktop|\.next(?:-desktop)?|\.fussenn|\.sidenote-ai|\.codex|release|out|coverage|test-results|playwright-report|data)(?:\/|$)|\.(?:db(?:-shm|-wal)?|sqlite3?(?:-shm|-wal)?|(?:fussenn|sidenote)\.json(?:\.partial)?|pem|key|p12|pfx|p8|cer|certSigningRequest|log)$/i.test(file)) throw new Error(`Private/generated file is a publication candidate: ${file}`);
     const source = resolve(root, file);
     if (!existsSync(source)) continue; // A deletion awaiting commit has no worktree content.
     const path = relative(root, realpathSync(source));

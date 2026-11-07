@@ -55,7 +55,7 @@ npm run source:archive
 
 ## アプリの一般配布前に残ること
 
-Apple Silicon Macでのビルド・配布版テスト・実機操作は確認済みです。Intel Macは、ビルドと配布版テストをGitHub ActionsとRosetta 2で確認済みで、画面を使った実機操作は未実施です。Windows署名、Macの正式な署名・公証も未実施です。Mac成果物は継承したad-hoc署名の厳密検証とGatekeeper判定に通っておらず、一般配布の準備完了とは扱いません。詳しくは [Macの検証記録](mac-validation.md) を参照してください。
+Apple Silicon Macでのビルド・配布版テスト・実機操作は確認済みです。Intel Macは、ビルドと配布版テストをGitHub ActionsとRosetta 2で確認済みで、画面を使った実機操作は未実施です。2026-11-08に、Apple Silicon MacでDeveloper IDによる署名を確認しました。署名は、指定したビルドでだけ行います。Macの公証とWindowsの署名は未実施です。公証していない署名済みアプリはGatekeeper判定に通らないため、一般配布の準備完了とは扱いません。署名しない成果物は、継承したad-hoc署名の厳密検証にも通りません。詳しくは [Macの検証記録](mac-validation.md) を参照してください。
 
 ライセンス原文の同梱と検査を追加し、未使用のSharp/libvipsは新しいデスクトップ配布物から除外しました。依存や素材を更新した場合は [第三者のライセンス](../THIRD_PARTY_NOTICES.md) に従って再確認します。以前のインストーラーにはこの変更は適用されません。一般配布はまだ行っていません。
 

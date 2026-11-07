@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Signed Mac builds use the hardened runtime. V8 compiles JavaScript at run time in Electron's
+       processes and in the bundled Node.js that runs the server, so every signed binary needs JIT.
+       Library validation stays on: all bundled code, including better-sqlite3, carries the app's signature. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+</dict>
+</plist>

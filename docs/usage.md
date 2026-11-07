@@ -11,7 +11,7 @@
 Fussenn専用のウィンドウで操作するデスクトップ版があります。会話・資料・付箋は新規では `~/.fussenn` に保存し、名称変更前の保存先もそのまま利用できます。詳しくは [保存場所とプライバシー](#保存場所とプライバシー) を参照してください。
 
 - **Windows**：自分でビルドした `Fussenn-0.2.4-win-x64.exe` でインストールし、**Fussenn** から起動します。
-- **Mac**：Apple Silicon / Intelそれぞれの `.app`・DMG・ZIPを作る設定があります。Apple Siliconではビルド・配布版テスト・実機操作を確認済みです。Intel Macはビルドと配布版テストをGitHub ActionsとRosetta 2で確認済みで、画面を使った実機操作と、正式な署名・公証は未実施です。詳しくは [Macの検証記録](mac-validation.md) を参照してください。
+- **Mac**：Apple Silicon / Intelそれぞれの `.app`・DMG・ZIPを作る設定があります。Apple Siliconではビルド・配布版テスト・実機操作と、Developer IDによる署名を確認済みです。Intel Macはビルドと配布版テストをGitHub ActionsとRosetta 2で確認済みで、画面を使った実機操作と署名したIntel版の確認は未実施です。公証はまだ行っていません。詳しくは [Macの検証記録](mac-validation.md) を参照してください。
 - **Linux**：AppImageを作る設定があります。GitHub Actions（Ubuntu 24.04）で、ビルドと展開したアプリでの配布版テストを確認済みです。AppImageからの起動と実機での確認は未実施です。
 - 配布版には実行環境が同梱されるため、Node.js・npm・通常のブラウザは日常操作に不要です。ChatGPTログイン時は外部ブラウザを使います。Codex ProviderにはCodex CLIが別途必要です。
 - ウィンドウを閉じると、メモを保存して内部サーバーも終了します。回答生成中・ダウンロード中・保存失敗時は終了を見送ります。
