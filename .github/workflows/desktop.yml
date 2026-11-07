@@ -49,6 +49,8 @@ jobs:
           architecture: ${{ matrix.arch }}
           cache: npm
       - run: npm run setup
+      # Installers are uploaded from this workflow, so it applies the same dependency policy.
+      - run: npm run audit:dependencies
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

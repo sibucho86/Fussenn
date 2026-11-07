@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
@@ -12,8 +13,12 @@ const root = realpathSync(join(dirname(fileURLToPath(import.meta.url)), ".."));
 const stage = join(root, ".desktop");
 verifyIcons();
 if (!['win32', 'darwin', 'linux'].includes(process.platform)) throw new Error("Unsupported desktop platform");
-const [major, minor] = process.versions.node.split(".").map(Number);
-if (major < 22 || (major === 22 && minor < 13)) throw new Error("Node.js 22.13 or newer is required");
+// The desktop app bundles the Node.js that runs this script, so building it needs the patched 24 line
+// it is tested with. Raise this together with the CI node-version after a Node.js security release.
+const desktopNode = [24, 22, 2], running = process.versions.node.split(".").map(Number);
+if (running[0] !== desktopNode[0] || running[1] < desktopNode[1] || (running[1] === desktopNode[1] && running[2] < desktopNode[2])) {
+  throw new Error(`The desktop app bundles the Node.js that builds it. Use Node.js ${desktopNode.join(".")} or a newer 24.x release (running ${process.versions.node}).`);
+}
 // next build rewrites next-env.d.ts for its output directory. Keep the committed
 // browser-build version, so a desktop build does not leave a source change behind.
 const nextEnv = join(root, "next-env.d.ts");
@@ -71,7 +76,8 @@ cpSync(join(root, "desktop"), join(application, "desktop"), { recursive: true })
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 writeFileSync(join(application, "package.json"), JSON.stringify({ name: pkg.name, productName: pkg.productName, version: pkg.version, private: true, license: pkg.license, description: pkg.description, author: pkg.author, main: "desktop/main.mjs", type: "module" }, null, 2));
 // A reproducible build must use a runner matching the desired OS and CPU.
-writeFileSync(join(stage, "build-info.json"), JSON.stringify({ platform: process.platform, arch: process.arch, node: process.versions.node, electron: pkg.devDependencies.electron, version: pkg.version }, null, 2));
+const lockfile = createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).digest("hex");
+writeFileSync(join(stage, "build-info.json"), JSON.stringify({ platform: process.platform, arch: process.arch, node: process.versions.node, electron: pkg.devDependencies.electron, version: pkg.version, lockfile }, null, 2));
 for (const file of walk(stage)) {
   const path = relative(stage, file);
   if (isAbsolute(path) || path.startsWith("..") || basename(file).startsWith(".env") || /\.(?:db|(?:fussenn|sidenote)\.json)$/.test(file)) throw new Error("Unexpected private file in desktop bundle");

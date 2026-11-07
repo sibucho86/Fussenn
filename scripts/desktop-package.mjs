@@ -1,4 +1,5 @@
 import { build, Platform, Arch } from "electron-builder";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,6 +18,9 @@ const prepared = JSON.parse(readFileSync(join(root, ".desktop", "app", "package.
 for (const field of ["name", "version", "productName", "author", "description"]) {
   if (prepared[field] !== pkg[field]) throw new Error(`Prepared app metadata changed (${field}). Run npm run desktop:prepare.`);
 }
+// Packaging takes the dependencies and runtime staged by prepare, so refuse them once the lockfile changed.
+const lockfile = createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).digest("hex");
+if (info.lockfile !== lockfile || info.electron !== pkg.devDependencies.electron) throw new Error("Dependencies changed since npm run desktop:prepare. Run it again.");
 for (const file of ["fussenn.png", "fussenn.ico", "fussenn.icns"]) {
   if (!readFileSync(join(root, ".desktop", "app", "desktop", "icons", file)).equals(readFileSync(join(icons, file)))) throw new Error("Prepared app icon changed. Run npm run desktop:prepare.");
 }
