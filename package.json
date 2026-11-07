@@ -86,7 +86,7 @@
     "jsdom": "^28.1.0",
     "resedit": "1.7.2",
     "sharp": "0.35.5",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "undici": "7.30.2",
     "vitest": "^5.1.0"
   }
