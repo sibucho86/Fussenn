@@ -1,6 +1,6 @@
 import { build, Platform, Arch } from "electron-builder";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { verifyDesktopLicenses } from "./desktop-licenses.mjs";
@@ -8,6 +8,7 @@ import { verifyIcons } from "./icons.mjs";
 import { verifyWindowsBranding } from "./desktop-branding.mjs";
 import { windowsInstallerOptions } from "./desktop-installer-options.mjs";
 import { macSigning, notaryCredentials, verifyMacSignature } from "./desktop-mac-signing.mjs";
+import { assertNoHomePaths } from "./desktop-build-paths.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
@@ -51,6 +52,8 @@ await build({ targets: platform.createTarget(target, Arch[process.arch]), publis
     for (const file of ["server/server.js", "server/node_modules/next/dist/server/lib/start-server.js", `server/node_modules/better-sqlite3/prebuilds/${info.platform}-${info.arch}.node`, "runtime/server-bootstrap.cjs", `runtime/${info.platform === "win32" ? "node.exe" : "node"}`]) {
       if (!existsSync(join(resources, file))) throw new Error(`Required runtime file was not packaged: ${file}`);
     }
+    // The whole app before signing, including files staged by a prepare that predates the scrub.
+    assertNoHomePaths(context.appOutDir, { project: [root, realpathSync(root)] });
   },
   afterSign: async (context) => {
     if (process.platform === "win32") verifyWindowsBranding(join(context.appOutDir, `${pkg.productName}.exe`), join(icons, "fussenn.ico"), pkg);
