@@ -13,7 +13,7 @@ Apple Silicon（arm64）・macOS 26.6.2・Node.js 24.22.2・Electron 44.10.2で�
 | 署名つきビルド | `FUSSENN_MAC_SIGN=1` でpack・distが成功。`FUSSENN_MAC_NOTARIZE=1` も指定したdistでは、署名・公証・公証チケットの添付の後に、DMGとZIPを生成 |
 | アプリの署名 | 厳密な署名検証（`codesign --verify --deep --strict`）に合格。Developer IDの署名・タイムスタンプ・Hardened Runtimeあり。権限はJITだけ。Electronのヘルパー4つも同じ権限 |
 | アプリ内のコード | Electronのヘルパー・フレームワーク、同梱のNode.js、SQLiteのネイティブモジュール2件を含むMach-O 17件すべてが、アプリと同じチームの署名・タイムスタンプ・Hardened Runtimeつき。権限はJITだけか、なし |
-| 公証 | App Store Connect APIのチームキー（アクセス権はDeveloper）を、notarytoolのキーチェーンプロファイルに登録し、`APPLE_KEYCHAIN_PROFILE` で指定。electron-builderが送ったアプリのZIPを、Appleが受理（Accepted）。チームとして最初の提出で、受理まで約36時間半かかった（2026-11-08 15:48〜11-10 04:18）。ビルドはその間、結果を待ち続け、受理の後に公証チケットをアプリに添付した |
+| 公証 | App Store Connect APIのチームキー（アクセス権はDeveloper）を、notarytoolのキーチェーンプロファイルに登録し、`APPLE_KEYCHAIN_PROFILE` で指定。electron-builderが送ったアプリのZIPを、Appleが受理（Accepted、Ready for distribution）。審査記録の警告は0件。アップロードは提出から15秒で終わったが、チームとして最初の提出で、受理まで約36時間半かかった（2026-11-08 15:48〜11-10 04:18）。ビルドはその間、結果を待ち続け、受理の後に公証チケットをアプリに添付した |
 | 配布物 | DMGのチェックサム検証に成功。DMGとZIPから取り出したアプリも、厳密な署名検証、公証チケットの検証（`stapler validate`）、ビルド時と同じ検査に合格。ビルドしたアプリと、DMG・ZIPから取り出したアプリの3,070項目（フォルダと公証チケットを含む）は、内容・権限・シンボリックリンクが一致 |
 | ビルド環境の情報 | 修正前は、Next.jsのサーバー設定2ファイルの7か所に、ビルドしたMacのホームフォルダのパス（アカウント名を含む）が入っていた。修正後は、アプリ、DMGの中身（隠しファイルを含む）、ZIPの中身のどこにもない。ビルド中の検査も、準備したファイルと署名前のアプリ全体で合格。公証の前に準備したファイルと、公証後のアプリ・DMGの中身・ZIPの中身・DMGとZIPのファイルそのものも調べ、ビルドしたMacのアカウント名・メールアドレス・氏名・コンピューター名は含まれていなかった |
 | 配布版テスト | 公証前の署名したアプリと、そのDMGから取り出したアプリで12件ずつ成功。公証後のDMGから取り出し、日本語・空白を含むパスに置いたアプリでも12件成功 |
