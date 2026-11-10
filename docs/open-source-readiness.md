@@ -55,7 +55,7 @@ npm run source:archive
 
 ## アプリの一般配布前に残ること
 
-Apple Silicon Macでのビルド・配布版テスト・実機操作は確認済みです。Intel Macは、ビルドと配布版テストをGitHub ActionsとRosetta 2で確認済みで、画面を使った実機操作は未実施です。2026-11-08〜10に、Apple Silicon MacでDeveloper IDによる署名とAppleの公証を確認しました。署名と公証は、指定したビルドでだけ行います。公証したアプリは、ダウンロード時と同じquarantine属性を付けても、Gatekeeperに許可されます。残るのは、DMGファイルそのものの署名・公証、署名・公証したIntel版の確認、Windowsの署名です。署名しない成果物は、継承したad-hoc署名の厳密検証にも通りません。詳しくは [Macの検証記録](mac-validation.md) を参照してください。
+Apple Silicon Macでのビルド・配布版テスト・実機操作は確認済みです。Intel Macは、ビルドと配布版テストをGitHub ActionsとRosetta 2で確認済みで、画面を使った実機操作は未実施です。2026-11-08〜11に、Apple Silicon Macで、アプリとDMGのDeveloper IDによる署名とAppleの公証を確認しました。署名と公証は、指定したビルドでだけ行います。公証したアプリとDMGは、ダウンロード時と同じquarantine属性を付けても、Gatekeeperに許可されます。残るのは、実際にダウンロードしたDMGからの初回起動の画面確認、署名・公証したIntel版の確認、Windowsの署名です。署名しない成果物は、継承したad-hoc署名の厳密検証にも通りません。詳しくは [Macの検証記録](mac-validation.md) を参照してください。
 
 ライセンス原文の同梱と検査を追加し、未使用のSharp/libvipsは新しいデスクトップ配布物から除外しました。依存や素材を更新した場合は [第三者のライセンス](../THIRD_PARTY_NOTICES.md) に従って再確認します。以前のインストーラーにはこの変更は適用されません。一般配布はまだ行っていません。
 
