@@ -21,22 +21,22 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#181d1a" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="favicon.ico" sizes="32x32">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="style.css?v={{asset.css}}">
-<script src="main.js?v={{asset.js}}" defer></script>
+<link rel="icon" href="{{base}}favicon.ico" sizes="32x32">
+<link rel="icon" href="{{base}}icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{base}}apple-touch-icon.png">
+<link rel="stylesheet" href="{{base}}style.css?v={{asset.css}}">
+<script src="{{base}}main.js?v={{asset.js}}" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">本文へ移動</a>
 
 <header class="masthead">
   <div class="wrap bar">
-    <a class="brand" href="./"><img src="icon.svg" alt="" width="28" height="28"><span translate="no">Fussenn</span></a>
+    <p class="crumbs"><a class="org" href="https://omoshironics.com/">合同会社オモシロニクス</a><span class="sep" aria-hidden="true">/</span><a class="brand" href="{{base}}"><img src="{{base}}icon.svg" alt="" width="28" height="28"><span translate="no">Fussenn</span></a></p>
     <nav class="nav" aria-label="ページ内の案内">
       <a href="#download">ダウンロード</a>
       <a href="#faq">よくある質問</a>
-      <a href="{{repo.url}}">GitHub</a>
+      <!--release--><a href="{{repo.url}}">GitHub</a><!--/release-->
     </nav>
   </div>
 </header>
@@ -55,13 +55,19 @@
       </aside>
       <aside class="note" id="get" aria-labelledby="get-head">
         <p class="note-head" id="get-head"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM15 3v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>MacとWindows</span></p>
+        <!--release-->
         <p class="note-mobile" data-mobile hidden>パソコン用のアプリです。MacかWindowsのパソコンでこのページを開いてください。</p>
         <div class="choices" data-choices>
           <a class="choice" data-os="mac" href="{{download.mac}}"><strong>Mac版をダウンロード</strong><span>Apple Silicon、macOS&nbsp;13以降</span></a>
           <a class="choice" data-os="win" href="{{download.win}}"><strong>Windows版をダウンロード</strong><span>Windows&nbsp;10と11（64ビット）。開くときに警告が出ます</span></a>
         </div>
+        <!--/release-->
+        <!--coming-soon-->
+        <p class="note-soon">ダウンロードは準備中です。公開したら、このページからダウンロードできます。</p>
+        <!--/coming-soon-->
         <p>AIを使うには、ChatGPTのアカウントかOpenAIのAPIキーなどが要ります（<a href="#ai">AIとのつなぎ方</a>）。</p>
-        <p class="note-meta"><span>{{release.label}}</span><a href="#download">入れ方と注意</a></p>
+        <!--release--><p class="note-meta"><span>{{release.label}}</span><a href="#download">入れ方と注意</a></p><!--/release-->
+        <!--coming-soon--><p class="note-meta"><span>公開準備中</span><a href="#download">対応するパソコン</a></p><!--/coming-soon-->
       </aside>
     </div>
     <svg class="leader" aria-hidden="true" focusable="false"></svg>
@@ -69,8 +75,8 @@
 
   <figure class="shot">
     <picture>
-      <source media="(max-width: 600px)" srcset="images/hero-detail.webp" width="1074" height="806">
-      <img src="images/hero.webp" width="2400" height="1364" alt="Fussennで資料を読んでいる画面。「発酵のきほん」という資料の「アミノ酸」という言葉に付箋を貼り、「うま味のもとになるアミノ酸は？」とメモを書いている。言葉と付箋は点線でつながっている。" fetchpriority="high">
+      <source media="(max-width: 600px)" srcset="{{base}}images/hero-detail.webp" width="1074" height="806">
+      <img src="{{base}}images/hero.webp" width="2400" height="1364" alt="Fussennで資料を読んでいる画面。「発酵のきほん」という資料の「アミノ酸」という言葉に付箋を貼り、「うま味のもとになるアミノ酸は？」とメモを書いている。言葉と付箋は点線でつながっている。" fetchpriority="high">
     </picture>
     <figcaption>取り込んだ資料の「アミノ酸」に付箋を貼り、あとでAIに聞くことをメモしたところ。画面に出ているのはデモ用のデータです。</figcaption>
   </figure>
@@ -92,11 +98,11 @@
 
   <div class="pair">
     <figure>
-      <img src="images/step-select.webp" width="1120" height="840" loading="lazy" alt="AIの回答で「Resource」を選ぶと、すぐ下に「付箋」ボタンが出る。">
+      <img src="{{base}}images/step-select.webp" width="1120" height="840" loading="lazy" alt="AIの回答で「Resource」を選ぶと、すぐ下に「付箋」ボタンが出る。">
       <figcaption>言葉を選ぶと「付箋」ボタンが出ます。</figcaption>
     </figure>
     <figure>
-      <img src="images/step-ask.webp" width="1082" height="812" loading="lazy" alt="「Resource」に貼った付箋の中で、AIに質問して答えを受け取っている。">
+      <img src="{{base}}images/step-ask.webp" width="1082" height="812" loading="lazy" alt="「Resource」に貼った付箋の中で、AIに質問して答えを受け取っている。">
       <figcaption>付箋の中で質問して、答えを読みます。回答はデモ用のものです。</figcaption>
     </figure>
   </div>
@@ -132,7 +138,7 @@
   </section>
 
   <figure class="shot">
-    <img src="images/manuscript.webp" width="2000" height="1250" loading="lazy" alt="原稿の編集画面。左にMarkdown、右にプレビューを並べている。付箋で練った一文を本文に反映したところ。">
+    <img src="{{base}}images/manuscript.webp" width="2000" height="1250" loading="lazy" alt="原稿の編集画面。左にMarkdown、右にプレビューを並べている。付箋で練った一文を本文に反映したところ。">
     <figcaption>付箋で練った一文を原稿に反映したところ。左がMarkdown、右がプレビューです。</figcaption>
   </figure>
 
@@ -155,7 +161,7 @@
         <dt>OpenAI互換のサーバー</dt>
         <dd>OpenAIと同じ形で呼び出せるサーバーです。接続先のURLとモデル名を設定画面で指定します。自分のパソコンで動かすOllamaにもつなげます。キーが要るサーバーなら、キーは同じ設定ファイルに書きます。</dd>
       </dl>
-      <p class="more"><a href="{{repo.url}}/blob/main/docs/usage.md#providerの設定">設定の手順（GitHub）</a></p>
+      <!--release--><p class="more"><a href="{{repo.url}}/blob/main/docs/usage.md#providerの設定">設定の手順（GitHub）</a></p><!--/release-->
     </div>
   </section>
 
@@ -177,13 +183,17 @@
 
   <section class="downloads" id="download" aria-labelledby="download-title">
     <h2 id="download-title">ダウンロード</h2>
-    <p class="release">{{release.label}}。無料です。</p>
+    <!--release--><p class="release">{{release.label}}。無料です。</p><!--/release-->
+    <!--coming-soon--><p class="release">ダウンロードは準備中です。公開したら、このページからダウンロードできます。無料です。</p><!--/coming-soon-->
     <div class="platforms" data-choices>
       <section class="platform" data-os="mac" aria-labelledby="mac-title">
         <h3 id="mac-title">Mac</h3>
+        <!--release-->
         <a class="button" href="{{download.mac}}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Mac版をダウンロード</a>
         <p class="file"><code translate="no">{{mac.file}}</code><span>{{mac.size}}</span></p>
-        <p>Apple Silicon（M1以降）のMacで、macOS&nbsp;13以降に対応しています。Intel Macでは動きません。Appleの公証を受けたアプリです。</p>
+        <!--/release-->
+        <p>Apple Silicon（M1以降）のMacで、macOS&nbsp;13以降に対応しています。Intel Macでは動きません。<!--release-->Appleの公証を受けたアプリです。<!--/release--></p>
+        <!--release-->
         <ol class="howto">
           <li>ダウンロードしたDMGを開き、Fussennを「アプリケーション」フォルダにドラッグします。</li>
           <li>「アプリケーション」フォルダから開きます。初めて開くときに確認が出たら、「開く」を押します。</li>
@@ -193,30 +203,38 @@
           <p><code class="digest" translate="no">{{mac.sha256}}</code></p>
           <p>ターミナルで <code translate="no">shasum -a 256 ~/Downloads/{{mac.file}}</code> を実行し、同じ値になるかを見ます。</p>
         </details>
+        <!--/release-->
       </section>
 
       <section class="platform" data-os="win" aria-labelledby="win-title">
         <h3 id="win-title">Windows</h3>
+        <!--release-->
         <a class="button" href="{{download.win}}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Windows版をダウンロード</a>
         <p class="file"><code translate="no">{{win.file}}</code><span>{{win.size}}</span></p>
+        <!--/release-->
         <p>Windows&nbsp;10と11の64ビット版に対応しています。Windows版には発行元の署名がないため、開くときに警告が出ます。署名に使う証明書は毎年費用がかかるので、今は署名していません。</p>
+        <!--release-->
         <ol class="howto">
           <li>ダウンロードしたファイルを開きます。</li>
           <li>「Windows によって PC が保護されました」と出たら「詳細情報」を押します。発行元は「不明な発行元」と表示されます。このページから入手したファイルなら、「実行」を押します。</li>
           <li>案内に沿ってインストールします。管理者の権限はいりません。終わると、デスクトップとスタートメニューに「Fussenn」ができます。</li>
         </ol>
+        <!--/release-->
         <aside class="note note-inline" aria-labelledby="sac-head">
           <p class="note-head" id="sac-head"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM15 3v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>スマート アプリ コントロール</span></p>
           <p>Windows&nbsp;11でこの機能をオンにしているパソコンでは、Fussennはブロックされて開けない見込みです。まだ試せていません。アプリごとに許可する方法はなく、オフにするとほかのアプリへの保護も外れます。オンになっているかは、「Windows セキュリティ」のアプリで確かめられます。</p>
         </aside>
+        <!--release-->
         <details class="hash">
           <summary>SHA-256で確かめる</summary>
           <p><code class="digest" translate="no">{{win.sha256}}</code></p>
           <p>PowerShellで <code translate="no">Get-FileHash $HOME\Downloads\{{win.file}}</code> を実行し、同じ値になるかを見ます。</p>
         </details>
+        <!--/release-->
       </section>
     </div>
 
+    <!--release-->
     <div class="after">
       <div>
         <h3>更新</h3>
@@ -228,13 +246,14 @@
       </div>
     </div>
     <p class="more">これまでのバージョンは<a href="{{repo.url}}/releases">GitHubのリリース</a>に、変わったところは<a href="{{repo.url}}/blob/main/CHANGELOG.md">変更履歴</a>にあります。</p>
+    <!--/release-->
   </section>
 
   <section class="faq" id="faq" aria-labelledby="faq-title">
     <h2 id="faq-title">よくある質問</h2>
     <details>
       <summary>無料ですか？</summary>
-      <p>無料です。ソースコードもMITライセンスで公開しています。AIの料金は使うサービスの条件によります。</p>
+      <p>無料です。<!--release-->ソースコードもMITライセンスで公開しています。<!--/release-->AIの料金は使うサービスの条件によります。</p>
     </details>
     <details>
       <summary>AIを使うには何が要りますか？</summary>
@@ -246,16 +265,18 @@
     </details>
     <details>
       <summary>Intel MacやLinuxで使えますか？</summary>
-      <p>今は配っていません。ソースコードから組み立てる手順は<a href="{{repo.url}}/blob/main/docs/desktop.md">GitHubの説明</a>にあります。</p>
+      <p>今は配っていません。<!--release-->ソースコードから組み立てる手順は<a href="{{repo.url}}/blob/main/docs/desktop.md">GitHubの説明</a>にあります。<!--/release--></p>
     </details>
     <details>
       <summary>スマートフォンで使えますか？</summary>
       <p>使えません。パソコン用のアプリです。</p>
     </details>
+    <!--release-->
     <details>
       <summary>不具合を見つけたら？</summary>
       <p>GitHubの<a href="{{repo.url}}/issues">Issues</a>に書いてください。セキュリティの問題は公開のIssueに書かず、<a href="{{repo.url}}/blob/main/SECURITY.md">セキュリティポリシー</a>にある方法で知らせてください。</p>
     </details>
+    <!--/release-->
   </section>
 
 </main>
@@ -265,13 +286,15 @@
     <p class="foot-brand"><img src="icon.svg" alt="" width="24" height="24"><span translate="no">Fussenn</span></p>
     <div class="foot-info">
       <p>提供：<a href="https://omoshironics.com/">合同会社オモシロニクス</a></p>
+      <!--release-->
       <ul class="foot-links">
         <li><a href="{{repo.url}}">GitHub</a></li>
         <li><a href="{{repo.url}}/blob/main/CHANGELOG.md">変更履歴</a></li>
         <li><a href="{{repo.url}}/blob/main/LICENSE">ライセンス（MIT）</a></li>
         <li><a href="{{repo.url}}/blob/main/SECURITY.md">セキュリティ</a></li>
       </ul>
-      <p class="foot-note">このページは外部のフォントやスクリプトを読み込まず、アクセス解析もしていません。ダウンロードするファイルはGitHubにあります。</p>
+      <!--/release-->
+      <p class="foot-note">このページは外部のフォントやスクリプトを読み込まず、アクセス解析もしていません。<!--release-->ダウンロードするファイルはGitHubにあります。<!--/release--></p>
       <p class="foot-note">© 2026 Fussenn contributors</p>
     </div>
   </div>

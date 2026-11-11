@@ -6,7 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { formatChecksums, writeChecksums } from "../../scripts/release-checksums.mjs";
 import { checksumsName, releaseAssets } from "../../scripts/release-assets.mjs";
-import { assertLocalOnly, buildSite, formatDate, parseChecksums, releaseValues } from "../../scripts/site-build.mjs";
+import { assertLocalOnly, buildSite, formatDate, parseChecksums, releaseValues, selectBlocks } from "../../scripts/site-build.mjs";
 
 const hash = (seed) => seed.repeat(64).slice(0, 64);
 const release = (overrides = {}) => ({
@@ -29,11 +29,37 @@ test("fills the page with the repository and the latest release, and loads nothi
     assert.ok(html.includes(hash("a")) && html.includes(hash("b")));
     for (const { name } of releaseAssets) assert.ok(html.includes(`href="https://github.com/owner/Fussenn/releases/latest/download/${name}"`), name);
     assert.match(html, /<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self';/);
-    assert.match(html, /href="style\.css\?v=[0-9a-f]{10}"/);
+    assert.match(html, /<link rel="canonical" href="https:\/\/omoshironics\.com\/fussenn\/">/);
+    assert.match(html, /href="\/fussenn\/style\.css\?v=[0-9a-f]{10}"/);
+    assert.match(html, /src="\/fussenn\/images\/hero\.webp"/);
+    assert.doesNotMatch(html, /<!--\/?(?:release|coming-soon)-->|準備中/);
     for (const file of ["icon.svg", "favicon.ico", "apple-touch-icon.png", "og.png", "style.css", "main.js", "images/hero.webp"]) assert.ok(readFileSync(join(out, file)).length > 0, file);
   } finally {
     rmSync(out, { recursive: true, force: true });
   }
+});
+
+test("before the first release, offers no downloads and no links into the private repository", () => {
+  const out = temporary();
+  try {
+    buildSite({ out, comingSoon: true });
+    const html = readFileSync(join(out, "index.html"), "utf8");
+    assert.doesNotMatch(html, /\{\{|\}\}|<!--\/?(?:release|coming-soon)-->/);
+    assert.doesNotMatch(html, /github\.com|releases\/latest\/download|SHA-256で確かめる/);
+    assert.match(html, /ダウンロードは準備中です。/);
+    assert.match(html, /<a class="org" href="https:\/\/omoshironics\.com\/">合同会社オモシロニクス<\/a>/);
+    assert.throws(() => buildSite({ out, comingSoon: true, release: release(), sums: sums() }), /--coming-soon is for before the first release/);
+    assert.throws(() => buildSite({ out, comingSoon: true, base: "fussenn" }), /--base must be a path/);
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("keeps one kind of block and stops at a marker without its pair", () => {
+  const template = "a<!--release-->R<!--/release-->b<!--coming-soon-->C<!--/coming-soon-->c";
+  assert.equal(selectBlocks(template, false), "aRbc");
+  assert.equal(selectBlocks(template, true), "abCc");
+  assert.throws(() => selectBlocks("a<!--release-->R", false), /unmatched <!--release-->/);
 });
 
 test("dates the release in Japan time", () => {
