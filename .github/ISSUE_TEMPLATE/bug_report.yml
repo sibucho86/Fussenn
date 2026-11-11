@@ -9,7 +9,7 @@ body:
     id: environment
     attributes:
       label: バージョンと環境
-      placeholder: Fussenn 0.2.4 / Windows 11 / デスクトップ版
+      placeholder: Fussenn 0.3.0 / Windows 11 / デスクトップ版
     validations:
       required: true
   - type: textarea

@@ -4,7 +4,7 @@
 
 ## Windowsで使う
 
-以下のビルド手順で生成する `release/Fussenn-0.2.4-win-x64.exe` はインストーラーです。現時点でGitHub上の配布先はありません。インストール後、デスクトップまたはスタートメニューの **Fussenn** を開いてください。管理者権限を前提としないユーザー単位のインストールで、標準のインストール先は `%LOCALAPPDATA%\Programs\Fussenn` です。
+以下のビルド手順で生成する `release/Fussenn-win-x64.exe` はインストーラーです。現時点でGitHub上の配布先はありません。インストール後、デスクトップまたはスタートメニューの **Fussenn** を開いてください。管理者権限を前提としないユーザー単位のインストールで、標準のインストール先は `%LOCALAPPDATA%\Programs\Fussenn` です。
 
 インストールせずに確認する場合は `release/win-unpacked/Fussenn.exe` を開けます。この場合は `win-unpacked` フォルダ全体が必要で、EXEだけを移動できません。
 
@@ -94,7 +94,7 @@ Intel Macでは `release/mac/Fussenn.app/Contents/MacOS/Fussenn` を指定しま
 
 Next.jsは、ビルドした場所の絶対パスをサーバーの設定に書き残します。ビルドしたコンピューターでは、このパスはふつうホームフォルダの中にあり、アカウント名を含みます。配布版のサーバーはこの値を使わないため、`.desktop` に集めるときに、サーバー自身の場所（`.`）へ置き換えます。さらに、prepareは集めたファイルを、packとdistは署名の前にアプリ全体を調べます。ホームフォルダの中を指すパスが残っていれば、ビルドを止めます。エラーメッセージには、パスではなくファイル名だけを書きます。同梱のNode.jsなどのコンパイル済みコードには、配布元がビルドした環境のパスが入っています。そのため、コンパイル済みコードについては、このプロジェクトのフォルダのパスだけを調べます。
 
-配布物名は `Fussenn-<version>-<os>-<arch>.<ext>` です。Windowsでは `Fussenn-0.2.4-win-x64.exe`、Apple Silicon Macでは `Fussenn-0.2.4-mac-arm64.dmg` などを生成し、Macのアプリ名は `Fussenn.app` です。LinuxではAppImageの慣例に合わせ、CPU名が `x86_64` の `Fussenn-0.2.4-linux-x86_64.AppImage` になります。
+配布物名は `Fussenn-<os>-<arch>.<ext>` です。Windowsでは `Fussenn-win-x64.exe`、Apple Silicon Macでは `Fussenn-mac-arm64.dmg` などを生成し、Macのアプリ名は `Fussenn.app` です。LinuxではAppImageの慣例に合わせ、CPU名が `x86_64` の `Fussenn-linux-x86_64.AppImage` になります。名前に版番号は入れません。最新のリリースを指すダウンロードのリンクを、版を重ねても変えないためです（[リリースとダウンロードページ](release.md)）。版は「Fussennについて」で確かめられます。
 
 アイコンは [専用の元SVG](branding.md) から生成したICO・ICNS・PNGを使います。Windowsでは署名だけを省略して製品情報を設定し、生成したEXEとインストーラーの埋め込みアイコン・製品名・バージョンを自動検査します。
 

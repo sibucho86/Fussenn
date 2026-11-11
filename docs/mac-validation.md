@@ -88,7 +88,7 @@ npm run test:desktop:packaged
 npm run desktop:dist
 ```
 
-署名する場合は、Developer ID Application証明書が入ったMacで、packとdistに `FUSSENN_MAC_SIGN=1` を指定します。公証する場合は、distに `FUSSENN_MAC_NOTARIZE=1` と認証情報も指定します。詳細は [デスクトップ版の説明](desktop.md#macの署名と公証) を参照してください。現行版の配布物は `Fussenn-<version>-mac-arm64.dmg`・`Fussenn-<version>-mac-arm64.zip`、アプリは `Fussenn.app` です。DMG/ZIP生成後は、展開した `Fussenn.app/Contents/MacOS/Fussenn` を `FUSSENN_DESKTOP_EXE` に指定して `npm run test:desktop` を実行します。テストは保存先を分離します。ネイティブ画面を別途確認するときも、検証用の `FUSSENN_DATA_DIR` を指定してください。
+署名する場合は、Developer ID Application証明書が入ったMacで、packとdistに `FUSSENN_MAC_SIGN=1` を指定します。公証する場合は、distに `FUSSENN_MAC_NOTARIZE=1` と認証情報も指定します。詳細は [デスクトップ版の説明](desktop.md#macの署名と公証) を参照してください。現行版の配布物は `Fussenn-mac-arm64.dmg`・`Fussenn-mac-arm64.zip`、アプリは `Fussenn.app` です。DMG/ZIP生成後は、展開した `Fussenn.app/Contents/MacOS/Fussenn` を `FUSSENN_DESKTOP_EXE` に指定して `npm run test:desktop` を実行します。テストは保存先を分離します。ネイティブ画面を別途確認するときも、検証用の `FUSSENN_DATA_DIR` を指定してください。
 
 ## 残る確認
 

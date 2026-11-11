@@ -80,7 +80,8 @@ await build({ targets: platform.createTarget(target, Arch[process.arch]), publis
       } else console.log("Signed the disk image with the app's certificate.");
     }
   },
-  artifactName: "Fussenn-${version}-${os}-${arch}.${ext}",
+  // No version in the name: links to the latest release stay the same (see release-assets.mjs).
+  artifactName: "Fussenn-${os}-${arch}.${ext}",
   win: { target: "nsis", icon: join(icons, "fussenn.ico"), signExecutable: false },
   nsis: windowsInstallerOptions(icons),
   mac: { category: "public.app-category.productivity", target: ["dmg", "zip"], icon: join(icons, "fussenn.icns"), ...macSign },

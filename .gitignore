@@ -5,6 +5,8 @@ node_modules/
 release/
 public/pdfjs/
 out/
+_site/
+.site-release/
 .tmp/
 test-results/
 playwright-report/

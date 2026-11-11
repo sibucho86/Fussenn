@@ -110,7 +110,7 @@ export function ConversationSidebar(props: Props) {
       </section>
     </nav>
     {failedMove ? <div className="sidebar-move-error" role="alert"><p>「{failedMove.title}」を移動できませんでした。元の場所に残っています。</p><div><button onClick={() => void moveConversation(failedMove)}>再試行</button><button className="icon-button" aria-label="移動エラーを閉じる" onClick={() => setFailedMove(null)}><X size={12} /></button></div></div> : notice && <p className="sidebar-move-notice" role="status" aria-live="polite">{notice}</p>}
-    <div className="sidebar-foot"><div className="local-label"><span className="status-dot" />あなたのPCに保存</div><Link href="/settings" className="settings-link"><Settings2 size={16} />設定<span>v0.2</span></Link></div>
+    <div className="sidebar-foot"><div className="local-label"><span className="status-dot" />あなたのPCに保存</div><Link href="/settings" className="settings-link"><Settings2 size={16} />設定<span>v0.3</span></Link></div>
     {editor && <OrganizationEditor editor={editor} folders={folders} onClose={() => setEditor(null)} onSave={async (name, folderId) => {
       if (editor.kind === "conversation") {
         const row = await api<Conversation>(`conversations/${editor.row.id}`, { method: "PATCH", body: JSON.stringify({ ...(name !== editor.row.title ? { title: name } : {}), folderId }) });

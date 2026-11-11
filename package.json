@@ -1,6 +1,6 @@
 {
   "name": "fussenn",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "private": true,
   "license": "MIT",
   "productName": "Fussenn",
@@ -39,6 +39,9 @@
     "licenses:report": "node scripts/license-report.mjs",
     "licenses:check": "node scripts/license-report.mjs --check",
     "source:archive": "node scripts/source-archive.mjs",
+    "site:build": "node scripts/site-build.mjs",
+    "site:images": "npm run build && playwright test --config playwright.site.config.ts",
+    "release:checksums": "node scripts/release-checksums.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "overrides": {

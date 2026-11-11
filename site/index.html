@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="color-scheme" content="light dark">
+<title>Fussenn｜文章に付箋を貼って、AIと読み書きするアプリ</title>
+<meta name="description" content="文章の気になるところに付箋を貼り、その場所についてAIと話せるデスクトップアプリ。AIの回答、Markdown・テキスト・PDFの資料、書きかけの原稿に付箋を貼れます。Mac・Windows向けの無料のオープンソースで、データはPCの中に保存します。">
+<link rel="canonical" href="{{site.url}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fussenn">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:url" content="{{site.url}}">
+<meta property="og:title" content="Fussenn｜理解を、余白に。">
+<meta property="og:description" content="文章の気になるところに付箋を貼り、その場所についてAIと話せるデスクトップアプリ。Mac・Windows向け、無料のオープンソース。">
+<meta property="og:image" content="{{site.url}}og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Fussennのアイコンと「理解を、余白に。」の文字">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#3f5145">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css?v={{asset.css}}">
+<script src="main.js?v={{asset.js}}" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">本文へ移動</a>
+
+<header class="top">
+  <div class="bar wrap">
+    <a class="brand" href="./"><img src="icon.svg" alt="" width="30" height="30"><span>Fussenn</span></a>
+    <nav class="nav" aria-label="ページ内の案内">
+      <a href="#how">使い方</a>
+      <a href="#features">できること</a>
+      <a href="#ai">AIとつなぐ</a>
+      <a href="#privacy">プライバシー</a>
+      <a href="#faq">よくある質問</a>
+    </nav>
+    <a class="bar-cta" href="#download">ダウンロード</a>
+  </div>
+
+  <div class="hero wrap">
+    <div class="hero-copy">
+      <h1 class="headline"><span class="phrase">理解を、</span><span class="phrase"><mark class="anchor" id="anchor">余白</mark>に。</span></h1>
+      <p class="lede">文章の気になるところに付箋を貼り、その場所についてAIと話せるアプリです。AIの回答にも、手元の資料にも、書きかけの原稿にも貼れます。</p>
+      <ul class="facts">
+        <li>無料・オープンソース</li>
+        <li>データはPCの中に保存</li>
+        <li>アカウント登録なし</li>
+      </ul>
+    </div>
+
+    <div class="sticky-wrap">
+      <aside class="sticky" aria-labelledby="get-title">
+        <p class="sticky-head" id="get-title">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15 3v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          ダウンロード
+        </p>
+        <div class="choices" data-choices>
+          <a class="choice" data-os="mac" href="{{download.mac}}"><strong>Mac版をダウンロード</strong><span>Apple Silicon・macOS 13以降</span></a>
+          <a class="choice" data-os="win" href="{{download.win}}"><strong>Windows版をダウンロード</strong><span>Windows 10・11（64ビット）</span></a>
+        </div>
+        <p class="sticky-mobile" data-mobile hidden>パソコン用のアプリです。Mac・Windowsのパソコンで、このページを開いてください。</p>
+        <p class="sticky-meta">{{release.label}}<a href="#download">入れ方と注意</a></p>
+      </aside>
+    </div>
+
+    <svg class="leader" aria-hidden="true" focusable="false"><path/></svg>
+  </div>
+
+  <figure class="shot">
+    <img src="images/hero.webp" width="2400" height="1500" alt="Fussennの画面。AIの回答の「Resource」という言葉に付箋を貼り、付箋の中で「Toolとの違いを、具体例で教えて」と質問している。言葉と付箋は点線でつながっている。" fetchpriority="high">
+  </figure>
+</header>
+<p class="shot-caption wrap">AIの回答に付箋を貼り、付箋の中で質問しているところ。画面はデモ用のデータです。</p>
+
+<main id="main">
+
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 class="section-title" id="how-title">使い方</h2>
+      <p class="section-lede">付箋は、選んだ文章とつながったまま残ります。</p>
+      <ol class="steps">
+        <li class="step">
+          <img src="images/step-select.webp" width="1120" height="840" loading="lazy" alt="AIの回答で「Resource」を選ぶと、すぐ下に「付箋」ボタンが出る。">
+          <h3>文章を選ぶ</h3>
+          <p>AIの回答、取り込んだ資料、書きかけの原稿。気になるところを選んで「付箋」を押します。</p>
+        </li>
+        <li class="step">
+          <img src="images/step-ask.webp" width="1082" height="812" loading="lazy" alt="「Resource」に貼った付箋の中で、AIに質問し、回答を受け取っている。">
+          <h3>付箋に書く、AIに聞く</h3>
+          <p>付箋にメモを残すか、「AIに聞く」で質問します。付箋の中のやり取りは、元の会話に混ざりません。</p>
+        </li>
+        <li class="step">
+          <img src="images/step-reflect.webp" width="1200" height="901" loading="lazy" alt="付箋の原稿案を本文に反映する前の確認画面。消える文には取り消し線、加わる文には下線が付いている。">
+          <h3>本文に戻す</h3>
+          <p>付箋で練った文章は、どこが変わるかを確かめてから本文に反映できます。反映する前の版には、履歴から戻せます。</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="features" aria-labelledby="features-title">
+    <div class="wrap">
+      <h2 class="section-title" id="features-title">できること</h2>
+
+      <div class="feature">
+        <div class="feature-text">
+          <h3>資料を読む</h3>
+          <p>Markdown・テキスト・PDFを取り込み、本文に付箋を貼れます。付箋でAIに聞くと、資料の全文と選んだ箇所をもとに答えます。</p>
+          <p class="aside">本文はFussennの中にコピーして保存します。PDFは文字を含むものに対応し、スキャンした画像の文字は読み取りません。</p>
+        </div>
+        <img class="feature-shot" src="images/documents.webp" width="2000" height="1250" loading="lazy" alt="取り込んだ資料「疲労設計の基礎」の「疲労限度」という言葉に付箋を貼り、メモを書いた画面。">
+      </div>
+
+      <div class="feature">
+        <div class="feature-text">
+          <h3>原稿を書く</h3>
+          <p>Markdownで書き、プレビューと並べて確かめられます。目次と文字数も表示します。付箋の原稿案は、変わるところを確かめてから反映し、履歴から元に戻せます。</p>
+        </div>
+        <img class="feature-shot" src="images/manuscript.webp" width="2000" height="1250" loading="lazy" alt="原稿の編集画面。左にMarkdown、右にプレビューを並べ、付箋で練った一文を反映したところ。">
+      </div>
+
+      <ul class="minor">
+        <li><h3>付箋を整える</h3><p>5色の色分け、折りたたみ、引き出し線の調整。小さなマーカーにしまうこともでき、付箋一覧から探せます。</p></li>
+        <li><h3>整理する</h3><p>会話・資料・原稿を、フォルダに分けて並べられます。</p></li>
+        <li><h3>書き出す</h3><p>付箋とのつながりを保ったまま、Obsidian向けのMarkdownに書き出せます。</p></li>
+        <li><h3>バックアップ</h3><p>毎日自動で保存します。ファイルに書き出して、別のPCで元に戻すこともできます。</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="ai" aria-labelledby="ai-title">
+    <div class="wrap">
+      <h2 class="section-title" id="ai-title">AIとつなぐ</h2>
+      <p class="section-lede">使うAIは、次の3つから選べます。Fussennは無料です。AIの利用料は、それぞれのサービスの条件に従います。</p>
+      <dl class="ledger">
+        <div class="ledger-row">
+          <dt>ChatGPT（Codex）</dt>
+          <dd>ChatGPTのアカウントと、OpenAIのCodex CLIを用意します。設定画面の「ChatGPTでサインイン」からつなぎ、ChatGPTのプランの利用枠の範囲で使えます。</dd>
+        </div>
+        <div class="ledger-row">
+          <dt>OpenAI API</dt>
+          <dd>OpenAIのAPIキーを用意し、データフォルダの設定ファイル（<code>desktop.env</code>）に書きます。使った分だけOpenAIに支払います。</dd>
+        </div>
+        <div class="ledger-row">
+          <dt>OpenAI互換のサーバー</dt>
+          <dd>接続先のURLとモデル名を設定します。たとえば、自分のPCで動かすOllamaにもつなげます。キーが必要な場合は、設定ファイルに書きます。</dd>
+        </div>
+      </dl>
+      <p class="more"><a href="{{repo.url}}/blob/main/docs/usage.md#providerの設定">設定のくわしい手順（GitHub）</a></p>
+    </div>
+  </section>
+
+  <section class="section" id="privacy" aria-labelledby="privacy-title">
+    <div class="wrap">
+      <h2 class="section-title" id="privacy-title">プライバシー</h2>
+      <p class="section-lede">書いたもの、読んだものは、あなたのPCの中に保存します。</p>
+      <ul class="points">
+        <li><h3><mark>保存先はPCの中</mark></h3><p>会話・資料・原稿・付箋は、Macでは <code>~/.fussenn</code>、Windowsでは <code>%USERPROFILE%\.fussenn</code> に保存します。</p></li>
+        <li><h3><mark>アカウントはいりません</mark></h3><p>Fussennのアカウント登録、クラウド同期、利用状況の送信（アクセス解析）はありません。</p></li>
+        <li><h3><mark>AIに送るのは、質問したときだけ</mark></h3><p>回答に必要な本文と会話を、自分で選んだAIに送ります。送った内容の扱いは、そのAIサービスの条件に従います。</p></li>
+        <li><h3><mark>暗号化はしていません</mark></h3><p>保存データとバックアップは暗号化していません。PCのアカウントとファイルの権限で守ってください。</p></li>
+        <li><h3><mark>中身を確かめられます</mark></h3><p>ソースコードは、すべて<a href="{{repo.url}}">GitHub</a>で公開しています（MITライセンス）。</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section downloads-section" id="download" aria-labelledby="download-title">
+    <div class="wrap">
+      <h2 class="section-title" id="download-title">ダウンロード</h2>
+      <p class="section-lede">{{release.label}}。どちらも無料です。</p>
+      <div class="downloads" data-choices>
+        <article class="dl" data-os="mac" aria-labelledby="mac-title">
+          <h3 id="mac-title">Mac</h3>
+          <p class="req">Apple Silicon（M1以降）・macOS 13以降。Intel Macには対応していません。</p>
+          <a class="button" href="{{download.mac}}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Mac版をダウンロード</a>
+          <p class="file"><code>{{mac.file}}</code><span>{{mac.size}}</span></p>
+          <p class="trust">Appleの公証を受けています（Developer IDで署名）。</p>
+          <h4>入れ方</h4>
+          <ol class="howto">
+            <li>ダウンロードしたDMGを開き、Fussennを「アプリケーション」フォルダへドラッグします。</li>
+            <li>「アプリケーション」フォルダからFussennを開きます。インターネットから入手したアプリを開くか確認されたら、「開く」を押します。</li>
+          </ol>
+          <details class="hash">
+            <summary>SHA-256で確かめる</summary>
+            <p><code class="digest">{{mac.sha256}}</code></p>
+            <p>ターミナルで <code>shasum -a 256 ~/Downloads/{{mac.file}}</code> を実行し、同じ値になるか確かめます。</p>
+          </details>
+        </article>
+
+        <article class="dl" data-os="win" aria-labelledby="win-title">
+          <h3 id="win-title">Windows</h3>
+          <p class="req">Windows 10・11（64ビット）。</p>
+          <a class="button" href="{{download.win}}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Windows版をダウンロード</a>
+          <p class="file"><code>{{win.file}}</code><span>{{win.size}}</span></p>
+          <p class="trust">発行元の署名はしていません。署名の証明書には、毎年費用がかかるためです。</p>
+          <h4>入れ方</h4>
+          <ol class="howto">
+            <li>ダウンロードした <code>{{win.file}}</code> を開きます。</li>
+            <li>「Windows によって PC が保護されました」と表示されたら、「詳細情報」を押します。発行元は「不明な発行元」と表示されます。このページから入手したファイルであることを確かめて、「実行」を押します。</li>
+            <li>インストーラーの案内に沿って進めます。管理者の権限はいりません。終わると、デスクトップとスタートメニューに「Fussenn」ができます。</li>
+          </ol>
+          <p class="caution">Windows 11で「スマート アプリ コントロール」が有効な場合、Fussennはブロックされる見込みです（まだ確かめていません）。アプリごとに許可する方法はなく、使うにはスマート アプリ コントロールをオフにする必要があります。オフにすると、ほかのアプリに対する保護も外れます。</p>
+          <details class="hash">
+            <summary>SHA-256で確かめる</summary>
+            <p><code class="digest">{{win.sha256}}</code></p>
+            <p>PowerShellで <code>Get-FileHash $HOME\Downloads\{{win.file}}</code> を実行し、同じ値になるか確かめます。</p>
+          </details>
+        </article>
+      </div>
+
+      <div class="after">
+        <div>
+          <h3>更新するとき</h3>
+          <p>自動更新はありません。新しい版が出たら、このページからダウンロードして入れ直します。Macは「アプリケーション」フォルダのFussennを置き換え、Windowsはインストーラーをもう一度実行します。保存したデータは、そのまま使えます。</p>
+        </div>
+        <div>
+          <h3>アンインストール</h3>
+          <p>Macは「アプリケーション」フォルダのFussennをゴミ箱に入れます。Windowsは「設定」の「アプリ」から、Fussennをアンインストールします。保存したデータ（<code>.fussenn</code> フォルダ）は残ります。要らなければ、バックアップを確かめてから削除してください。</p>
+        </div>
+      </div>
+      <p class="more">これまでの版は<a href="{{repo.url}}/releases">GitHubのリリース</a>、変わったところは<a href="{{repo.url}}/blob/main/CHANGELOG.md">変更履歴</a>で確かめられます。</p>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <h2 class="section-title" id="faq-title">よくある質問</h2>
+      <div class="faq">
+        <details>
+          <summary>無料ですか？</summary>
+          <p>はい。Fussennは無料で、ソースコードをMITライセンスで公開しています。AIを使う場合の料金は、それぞれのサービスの条件に従います。</p>
+        </details>
+        <details>
+          <summary>AIにつながなくても使えますか？</summary>
+          <p>資料を読む、付箋にメモする、原稿を書くといった操作は、AIにつながなくても使えます。AIとの会話と、付箋でAIに聞く操作には、AIの接続が必要です。</p>
+        </details>
+        <details>
+          <summary>データを別のPCに移せますか？</summary>
+          <p>設定画面の「バックアップを保存」で、すべてのデータを1つのファイルに書き出せます。移した先のPCで「バックアップから復元」を選びます。AIの接続は、移した先で設定し直します。</p>
+        </details>
+        <details>
+          <summary>Intel MacやLinuxで使えますか？</summary>
+          <p>今は配っていません。ソースコードから組み立てる方法は、<a href="{{repo.url}}/blob/main/docs/desktop.md">GitHubの説明</a>にあります。</p>
+        </details>
+        <details>
+          <summary>スマートフォンやタブレットで使えますか？</summary>
+          <p>使えません。パソコン用のアプリです。</p>
+        </details>
+        <details>
+          <summary>不具合を見つけたら？</summary>
+          <p>GitHubの<a href="{{repo.url}}/issues">Issues</a>で知らせてください。セキュリティの問題は、公開のIssueではなく、<a href="{{repo.url}}/blob/main/SECURITY.md">セキュリティポリシー</a>の方法で知らせてください。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="./"><img src="icon.svg" alt="" width="30" height="30"><span>Fussenn</span></a>
+      <p>理解を、余白に。</p>
+    </div>
+    <div class="foot-info">
+      <p>提供：<a href="https://omoshironics.com/">合同会社オモシロニクス</a></p>
+      <ul class="foot-links">
+        <li><a href="{{repo.url}}">GitHub</a></li>
+        <li><a href="{{repo.url}}/blob/main/CHANGELOG.md">変更履歴</a></li>
+        <li><a href="{{repo.url}}/blob/main/LICENSE">ライセンス（MIT）</a></li>
+        <li><a href="{{repo.url}}/blob/main/SECURITY.md">セキュリティ</a></li>
+      </ul>
+      <p class="foot-note">このページは、外部のフォント・スクリプト・アクセス解析を使っていません。ダウンロードはGitHubから行います。</p>
+      <p class="foot-note">© 2026 Fussenn contributors</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

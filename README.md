@@ -93,7 +93,7 @@ lint・型検査・通常テスト・配布ツールの検査・本番ビルド�
 - [使い方とAI接続](docs/usage.md)
 - [原稿編集](docs/manuscript.md)・[プレビューと目次](docs/manuscript-preview.md)・[PDF取り込み](docs/pdf-import.md)
 - [開発への参加](CONTRIBUTING.md)・[変更履歴](CHANGELOG.md)
-- [公開準備と残作業](docs/open-source-readiness.md)
+- [公開準備と残作業](docs/open-source-readiness.md)・[リリースとダウンロードページ](docs/release.md)
 - [アプリアイコンと製品情報](docs/branding.md)
 
 ## ライセンス
