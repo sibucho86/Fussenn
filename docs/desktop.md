@@ -146,11 +146,11 @@ Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Ma
 
 2026-10-18、名称変更後のコードでIntel（x64）版を、Apple Silicon上のRosetta 2を使って検証しました。setup・check・prepare・pack・distが成功し、配布版テスト11件が成功しています。アプリ本体・同梱Node・SQLiteはx86_64です。この検証で、画面の準備前に閉じると保存の確認を待ち続けて終了できない問題を見つけ、修正しました。Rosetta 2は実機のIntel Macと同一ではありません。同日、GitHub ActionsのIntel Mac（`macos-15-intel`）でも、ビルドと配布版テストの成功を確認しました。
 
-2026-11-08〜11、Apple Silicon Macで、Developer IDによる署名とAppleの公証を確認しました。公証したアプリとDMGには、公証チケットを添付しています。DMG・ZIPから取り出したアプリは、厳密な署名検証と公証チケットの検証に通り、配布版テスト12件が成功しています。ダウンロード時と同じquarantine属性を付けても、Gatekeeperはアプリと、DMGファイルそのものを、「公証済みのDeveloper ID」として許可します。署名を指定しないビルドとCIの成果物は、これまでどおり未署名です。Electron由来のad-hoc署名だけが残り、厳密な署名検証とGatekeeper判定には通りません。Intel Macでの画面を使った実機操作と、署名・公証したIntel版の確認は、まだ行っていません。OSの保護設定は変更していません。
+2026-11-08〜11、Apple Silicon Macで、Developer IDによる署名とAppleの公証を確認しました。公証したアプリとDMGには、公証チケットを添付しています。DMG・ZIPから取り出したアプリは、厳密な署名検証と公証チケットの検証に通り、配布版テスト12件が成功しています。ブラウザでのダウンロードを再現したDMGから取り出したアプリも、Appleの配布前チェック（`syspolicy_check distribution`）と配布版テストに合格しています。ダウンロード時と同じquarantine属性を付けても、Gatekeeperはアプリと、DMGファイルそのものを、「公証済みのDeveloper ID」として許可します。署名を指定しないビルドとCIの成果物は、これまでどおり未署名です。Electron由来のad-hoc署名だけが残り、厳密な署名検証とGatekeeper判定には通りません。Intel Macでの画面を使った実機操作は、まだ行っていません。Intel版の署名・公証は、Intel版も配る場合に行います。OSの保護設定は変更していません。
 
 ## 検証状況と公開準備
 
-WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Apple Silicon Macでは、署名と公証も確認しました。Intel Mac・Linuxの画面を使った実機操作と、署名・公証したIntel版の確認は残っています。Windowsでは署名しません。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
+WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Apple Silicon Macでは、署名と公証も確認しました。Intel Mac・Linuxの画面を使った実機操作は残っています。Intel版の署名・公証は、Intel版も配る場合に行います。Windowsでは署名しません。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
 
 ## 実装の境界
 

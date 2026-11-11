@@ -67,7 +67,7 @@ npm run desktop
 | --- | --- |
 | Windows x64 | 名称変更後、GitHub Actionsでビルド・ブラウザ版テスト・配布版テストと、検証専用インストーラーでの導入・更新・削除を確認（配布用EXEを実機で手動インストールした確認は旧名称時）。インストーラーには署名しない（[起動時の警告](docs/desktop.md#windowsで使う)）。 |
 | macOS Apple Silicon | 名称変更後もDMG・ZIP生成と配布版テストを確認済み（ローカルとGitHub Actions。実機操作の確認は旧名称時）。Developer IDによる署名と公証は、指定したローカルのビルドで、アプリとDMGの両方について確認済み。CIの成果物は未署名・未公証。 |
-| macOS Intel | GitHub ActionsのIntel Macと、Apple Silicon上のRosetta 2で、ビルドと配布版テストを確認。画面を使った実機操作、署名したIntel版の確認、公証は未実施。 |
+| macOS Intel | GitHub ActionsのIntel Macと、Apple Silicon上のRosetta 2で、ビルドと配布版テストを確認。画面を使った実機操作は未実施。署名・公証は、Intel版も配る場合に行う。 |
 | Linux | GitHub Actions（Ubuntu 24.04）で、ブラウザ版テスト、デスクトップ版のビルドと展開したアプリでの配布版テスト、AppImage生成を確認。AppImageからの起動と実機での確認は未実施。 |
 
 GitHubでの一般公開・リリース配布はまだ行っていません。アプリの生成方法と確認範囲は [デスクトップ版](docs/desktop.md)、Macの実機確認と署名の制限は [Macの検証記録](docs/mac-validation.md) を参照してください。生成したデスクトップ版にはNode.jsを同梱します。Codex Providerを使う場合は、Codex CLIとChatGPTログインが別途必要です。
