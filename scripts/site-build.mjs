@@ -30,7 +30,8 @@ export function parseChecksums(text) {
   return sums;
 }
 
-export const formatSize = (bytes) => `${Math.round(bytes / 1_000_000)} MB`;
+// A no-break space keeps the number and its unit on one line.
+export const formatSize = (bytes) => `${Math.round(bytes / 1_000_000)}\u00a0MB`;
 
 const dateFormat = new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" });
 export const formatDate = (iso) => dateFormat.format(new Date(iso));
@@ -41,7 +42,7 @@ export function releaseValues(release, sums) {
   const version = /^v(\d+\.\d+\.\d+)$/.exec(release.tagName ?? "")?.[1];
   if (!version) throw new Error(`The release tag must look like v1.2.3, not ${JSON.stringify(release.tagName)}.`);
   if (Number.isNaN(Date.parse(release.publishedAt))) throw new Error(`The release ${release.tagName} has no publication date.`);
-  const values = { "release.label": `バージョン ${version}（${formatDate(release.publishedAt)}）` };
+  const values = { "release.label": `バージョン\u00a0${version}（${formatDate(release.publishedAt)}）` };
   for (const { id, name } of releaseAssets) {
     const asset = (release.assets ?? []).find((item) => item.name === name);
     if (!asset || !(asset.size > 0)) throw new Error(`The release ${release.tagName} has no ${name}.`);
@@ -53,7 +54,7 @@ export function releaseValues(release, sums) {
 
 function previewValues() {
   const { version } = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-  const values = { "release.label": `バージョン ${version}（未公開）` };
+  const values = { "release.label": `バージョン\u00a0${version}（未公開）` };
   for (const { id } of releaseAssets) Object.assign(values, { [`${id}.size`]: "サイズは公開時に表示", [`${id}.sha256`]: "公開時に表示します" });
   return values;
 }

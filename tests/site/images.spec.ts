@@ -4,8 +4,8 @@ import type { ConversationDetail, SideNote } from "../../src/lib/types";
 import sharp from "sharp";
 
 // Images for the download page (site/), written as WebP to site/images and as PNG to site/og.png.
-// Run with npm run site:images. Everything shown is demo data made here: a Markdown document, a
-// manuscript and a conversation answered by the Mock provider, in a new, empty data folder.
+// Run with npm run site:images. Everything shown is demo data made here: a manuscript, a Markdown
+// document and a conversation answered by the Mock provider, in a new, empty data folder.
 const out = "site/images";
 type Box = { x: number; y: number; width: number; height: number };
 
@@ -36,22 +36,23 @@ async function dragNote(page: Page, note: Locator, x: number, y: number) {
 }
 
 const documentSource = [
-  "# 疲労設計の基礎",
+  "# 発酵のきほん",
   "",
-  "部品は、一度では壊れない小さな荷重でも、何度も繰り返し受けると壊れることがあります。これを **疲労破壊** と呼びます。",
+  "味噌や醤油、日本酒は、微生物の働きを借りて作られています。こうした変化を **発酵** と呼びます。",
   "",
-  "## S-N曲線を読む",
+  "## 麹の役割",
   "",
-  "材料に繰り返し応力を与え、壊れるまでの回数との関係を表したものが **S-N曲線** です。鋼では、応力がある値より低いと、実用上は何回繰り返しても壊れなくなります。この値を **疲労限度** と呼びます。",
+  "**麹** は、蒸した米や麦に麹菌（コウジカビ）を育てたものです。麹菌が出す酵素が、でんぷんを糖に、たんぱく質をアミノ酸に分解します。甘みやうま味が増すのは、このためです。",
   "",
-  "## 安全率の考え方",
+  "## 酵母と乳酸菌",
   "",
-  "実際の部品には、切り欠きや表面の粗さ、荷重のばらつきがあります。そこで、材料の強さを **安全率** で割った値を、許される応力として設計します。",
+  "日本酒づくりでは、麹が作った糖を **酵母** がアルコールに変えます。ぬか漬けの酸味は、**乳酸菌** が作る乳酸によるものです。",
   "",
-  "| 用語 | 意味 |",
-  "| --- | --- |",
-  "| 疲労限度 | 繰り返し荷重に耐えられる応力の目安 |",
-  "| 安全率 | 不確かさに備えて持たせる余裕の倍率 |",
+  "| 微生物 | 主な働き | 例 |",
+  "| --- | --- | --- |",
+  "| 麹菌 | でんぷんやたんぱく質を分解する | 味噌、醤油 |",
+  "| 酵母 | 糖をアルコールに変える | 日本酒、パン |",
+  "| 乳酸菌 | 乳酸を作る | ぬか漬け、ヨーグルト |",
 ].join("\n");
 const manuscriptSource = "## 朝の駅\n\n朝の駅は、いつもより静かだった。\n\n改札を抜けると、冷たい風がホームを渡っていく。彼女はコートの襟を立てて、まだ来ない電車を待った。";
 const revision = "始発を待つ駅は、自分の靴音が遠くまで響くほど静かだった。";
@@ -59,35 +60,8 @@ const revision = "始発を待つ駅は、自分の靴音が遠くまで響く�
 test("takes the download page's screenshots from demo data", async ({ page, request }) => {
   expect((await request.patch("/api/settings", { data: { defaultProvider: "mock" } })).ok()).toBe(true);
 
-  // A Markdown document with a note in the margin.
-  await page.goto("/");
-  await page.getByRole("button", { name: /^資料を開く/ }).click();
-  const importPanel = page.getByRole("dialog", { name: "資料を開く", exact: true });
-  await importPanel.getByLabel("取り込む資料ファイル").setInputFiles({ name: "疲労設計の基礎.md", mimeType: "text/plain", buffer: Buffer.from(documentSource) });
-  await importPanel.getByRole("button", { name: "資料を取り込む", exact: true }).click();
-  await expect(page.getByTestId("document-body")).toBeVisible();
-  await page.getByTestId("document-body").evaluate((root) => {
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    while (walker.nextNode()) {
-      const node = walker.currentNode as Text;
-      if (node.data !== "疲労限度" || node.parentElement?.tagName !== "STRONG") continue;
-      const range = document.createRange(); range.selectNodeContents(node);
-      const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
-      root.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })); return;
-    }
-    throw new Error("The word to annotate was not found.");
-  });
-  await page.getByRole("button", { name: "付箋", exact: true }).click();
-  const documentNote = page.getByTestId("floating-note");
-  await expect(documentNote).toHaveCount(1);
-  await documentNote.getByLabel("付箋のメモ", { exact: true }).fill("アルミ合金にも疲労限度はある？　次の設計レビューで確認する");
-  // Beside the table, where the note covers no text.
-  await dragNote(page, documentNote, 1150, 720);
-  await settle(page);
-  await expect(page.getByTestId("anchor-highlight").first()).toBeVisible();
-  await save(page, "documents", 2000);
-
   // A manuscript: a note's draft goes back into the text after a look at the difference.
+  await page.goto("/");
   await page.getByRole("button", { name: "原稿を書く", exact: true }).click();
   const newManuscript = page.getByRole("dialog", { name: "新しい原稿", exact: true });
   await newManuscript.getByLabel("原稿のタイトル").fill("短編「始発」");
@@ -112,7 +86,6 @@ test("takes the download page's screenshots from demo data", async ({ page, requ
   await sticky.getByRole("button", { name: "本文へ反映…", exact: true }).click();
   const reflect = page.getByRole("dialog", { name: "本文への反映を確認" });
   await expect(reflect.locator("ins")).toHaveText(revision);
-  await save(page, "step-reflect", 1200, await around(page, [reflect], 24));
   await reflect.getByRole("button", { name: "本文に反映する", exact: true }).click();
   await expect(body).toContainText(revision);
   await page.getByRole("button", { name: "並べて表示", exact: true }).click();
@@ -120,7 +93,44 @@ test("takes the download page's screenshots from demo data", async ({ page, requ
   await settle(page);
   await save(page, "manuscript", 2000);
 
+  // A document, read with a note in its margin: the page's first picture. The window is wider here
+  // so that the note fits beside the text instead of over it.
+  await page.setViewportSize({ width: 1760, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /^資料を開く/ }).click();
+  const importPanel = page.getByRole("dialog", { name: "資料を開く", exact: true });
+  await importPanel.getByLabel("取り込む資料ファイル").setInputFiles({ name: "発酵のきほん.md", mimeType: "text/plain", buffer: Buffer.from(documentSource) });
+  await importPanel.getByRole("button", { name: "資料を取り込む", exact: true }).click();
+  const documentBody = page.getByTestId("document-body");
+  await expect(documentBody).toBeVisible();
+  // A word near the end of its line, so the app's line to the note stays short.
+  await documentBody.evaluate((root) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode as Text, offset = node.data.indexOf("アミノ酸");
+      if (offset < 0) continue;
+      const range = document.createRange(); range.setStart(node, offset); range.setEnd(node, offset + 4);
+      const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
+      root.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })); return;
+    }
+    throw new Error("The word to annotate was not found.");
+  });
+  await page.getByRole("button", { name: "付箋", exact: true }).click();
+  const documentNote = page.getByTestId("floating-note");
+  await expect(documentNote).toHaveCount(1);
+  await documentNote.getByLabel("付箋のメモ", { exact: true }).fill("うま味のもとになるアミノ酸は？　食べ物の例もあわせて聞いてみる");
+  const anchorWord = page.getByTestId("anchor-highlight").first();
+  await expect(anchorWord).toBeVisible();
+  const column = (await documentBody.boundingBox())!, wordBox = (await anchorWord.boundingBox())!;
+  await dragNote(page, documentNote, column.x + column.width + 28 + 70, wordBox.y - 14 + 20);
+  await settle(page);
+  await expect(page.getByTestId("anchor-highlight").first()).toBeVisible();
+  await save(page, "hero", 2400);
+  // On a phone the whole window is too small to read, so the page shows this close-up instead.
+  await save(page, "hero-detail", 1200, await around(page, [anchorWord, documentNote], 28));
+
   // A conversation: select a word in the answer, attach a note and ask about it.
+  await page.setViewportSize({ width: 1600, height: 1000 });
   await page.goto("/");
   await page.getByLabel("メッセージ", { exact: true }).fill("MCPについて、全体像から教えて");
   await page.getByRole("button", { name: "送信", exact: true }).click();
@@ -147,7 +157,6 @@ test("takes the download page's screenshots from demo data", async ({ page, requ
   await note.locator(".note-chat-history").evaluate((el) => el.scrollTo({ top: 0, behavior: "instant" }));
   await page.locator(".canvas-scroll").evaluate((el) => el.scrollTo({ top: 0, behavior: "instant" }));
   await expect(page.getByTestId("anchor-highlight").first()).toBeVisible();
-  await save(page, "hero", 2400);
   await save(page, "step-ask", 1200, await around(page, [note], 24));
 });
 
@@ -160,9 +169,8 @@ test("draws the sharing image", async ({ page }) => {
     svg { width: 300px; height: 300px; }
     .name { font-size: 40px; font-weight: 600; letter-spacing: .02em; margin: 0 0 18px; }
     h1 { font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-weight: 600; font-size: 84px; line-height: 1.2; margin: 0 0 30px; letter-spacing: .02em; }
-    mark { background: linear-gradient(transparent 12%, #ffe49a 12%, #ffe49a 92%, transparent 92%); color: #26302a; padding: 0 .06em; }
     p { font-size: 28px; line-height: 1.6; margin: 0; color: #e4e8df; }
-  </style><body>${icon}<div><p class="name">Fussenn</p><h1>理解を、<mark>余白</mark>に。</h1><p>文章に付箋を貼って、AIと読み書きする。<br>Mac・Windows向けの無料アプリ</p></div></body></html>`);
+  </style><body>${icon}<div><p class="name">Fussenn</p><h1>理解を、余白に。</h1><p>文章に付箋を貼り、付箋の中でAIに質問できるアプリです。<br>MacとWindowsで、無料で使えます。</p></div></body></html>`);
   const png = await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } });
   await sharp(png).resize({ width: 1200 }).png({ compressionLevel: 9, palette: true, quality: 90 }).toFile("site/og.png");
 });

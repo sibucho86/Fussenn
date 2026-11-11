@@ -1,46 +1,59 @@
-/* Fussenn download page. Colors come from the app icon: the green desk, the paper and the yellow note. */
+/* Fussenn download page. The page is set like a document Fussenn has annotated: text on the left,
+   notes in the right margin, each joined to its marked word by the dashed line the app draws.
+   Colors come from the app. Only the title uses the Mincho face, as on the app's welcome screen. */
 :root {
-  --desk: #3f5145;
-  --desk-line: rgb(246 244 238 / 0.22);
-  --on-desk: #f6f4ee;
-  --on-desk-soft: #cfd8cc;
   --paper: #faf9f6;
-  --surface: #ffffff;
   --ink: #252d27;
   --ink-soft: #5a665d;
   --rule: #e2e4db;
+  --green: #3f5145;
   --link: #2d6a4a;
-  --note: #ffe49a;
-  --note-ink: #2f2a18;
+  --note-bg: #fdf3cd;
+  --note-head: #f6e8b2;
+  --note-line: #e2cd86;
+  --note-ink: #3a331b;
   --note-soft: #6a5a2a;
-  --note-fold: #ccae62;
+  --mark: #fbe7a3;
+  --mark-line: #c9a94e;
+  --leader: #b59a52;
   --button: #3f5145;
   --button-ink: #f6f4ee;
-  --caution: #fff3cf;
-  --caution-ink: #3d3520;
-  --shadow: rgb(22 32 25 / 0.35);
+  --suggested: #3f5145;
+  --suggested-ink: #f6f4ee;
+  --suggested-soft: #dfe6dc;
+  --on-green: #f6f4ee;
+  --on-green-soft: #cfd8cc;
+  --shadow: rgb(70 58 20 / 0.28);
   --focus: #2d6a4a;
   --font-display: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", serif;
   --font-body: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Segoe UI", "Yu Gothic UI", "Meiryo", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --wrap: 70rem;
+  --text: 38rem;
+  --margin: 16.5rem;
+  --gap: clamp(2.5rem, 6vw, 5.5rem);
   --gutter: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --desk: #2b3830;
     --paper: #181d1a;
-    --surface: #202722;
     --ink: #e9e7e0;
     --ink-soft: #a9b3a7;
     --rule: #333c36;
     --link: #ffe49a;
+    --note-bg: #352f1d;
+    --note-head: #40391f;
+    --note-line: #5d5232;
+    --note-ink: #f3ead0;
+    --note-soft: #d8c88f;
+    --mark: rgb(255 228 154 / 0.24);
+    --mark-line: #d9bd6a;
     --button: #ffe49a;
     --button-ink: #2f2a18;
-    --caution: #2e2a1c;
-    --caution-ink: #f1e7c4;
-    --shadow: rgb(0 0 0 / 0.55);
+    --suggested: #ffe49a;
+    --suggested-ink: #2f2a18;
+    --suggested-soft: #5c4f22;
+    --shadow: rgb(0 0 0 / 0.5);
     --focus: #ffe49a;
   }
 }
@@ -55,296 +68,199 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 1rem;
-  line-height: 1.9;
+  line-height: 1.95;
   letter-spacing: 0.02em;
   line-break: strict;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
+
+/* Selecting text on the page looks like selecting it in the app. */
+::selection { background: #ffe49a; color: #2f2a18; }
 
 img { max-width: 100%; height: auto; }
 
-/* Break short Japanese lines between phrases where the browser can (Chrome); others ignore it. */
-.lede, .section-lede, .shot-caption, h1, h2, h3, summary { word-break: auto-phrase; }
-
 a { color: var(--link); text-underline-offset: 0.25em; text-decoration-thickness: 1px; }
 a:hover { text-decoration-thickness: 2px; }
+a, summary { touch-action: manipulation; -webkit-tap-highlight-color: rgb(255 228 154 / 0.45); }
 
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+[id] { scroll-margin-top: 1.5rem; }
 
 code { font-family: var(--font-mono); font-size: 0.86em; letter-spacing: 0; overflow-wrap: anywhere; }
 
-.wrap { width: min(100% - 2 * var(--gutter), var(--wrap)); margin-inline: auto; }
+h1, h2, h3, summary, .lede, figcaption { word-break: auto-phrase; }
+h1, h2, h3 { text-wrap: balance; }
 
-.skip {
-  position: absolute; left: 1rem; top: -4rem; z-index: 10;
-  background: var(--note); color: var(--note-ink); padding: 0.5rem 1rem; border-radius: 6px;
-}
+.wrap { width: min(100% - 2 * var(--gutter), calc(var(--text) + var(--gap) + var(--margin))); margin-inline: auto; }
+
+.skip { position: absolute; left: 1rem; top: -4rem; z-index: 10; background: #ffe49a; color: #2f2a18; padding: 0.5rem 1rem; border-radius: 6px; }
 .skip:focus { top: 1rem; }
 
-/* The desk: header, hero and the first half of the screenshot. */
-.top {
-  --focus: var(--note);
-  --link: var(--on-desk);
-  --rest: calc(min(100vw - 2 * var(--gutter), 76rem) * 0.29);
-  color: var(--on-desk);
-  background: linear-gradient(to bottom, var(--desk) calc(100% - var(--rest)), transparent calc(100% - var(--rest)));
-}
-
-.bar { display: flex; align-items: center; gap: 1.5rem; padding-block: 1.1rem; }
-
-.brand {
-  display: inline-flex; align-items: center; gap: 0.6rem;
-  color: inherit; text-decoration: none; font-weight: 600; font-size: 1.2rem; letter-spacing: 0.01em;
-}
+.masthead { border-bottom: 1px solid var(--rule); }
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1.5rem; padding-block: 0.9rem; }
+.brand { flex: none; display: inline-flex; align-items: center; gap: 0.55rem; color: inherit; text-decoration: none; font-weight: 600; font-size: 1.1rem; letter-spacing: 0.01em; }
+.brand span { white-space: nowrap; }
 .brand img { display: block; }
+.nav { display: flex; flex-wrap: wrap; gap: 0.3rem 1.4rem; font-size: 0.9rem; }
+.nav a { color: var(--ink-soft); text-decoration: none; white-space: nowrap; }
+.nav a:hover { color: var(--ink); text-decoration: underline; }
 
-.nav { display: flex; gap: 1.6rem; margin-left: auto; font-size: 0.9rem; }
-.nav a { color: var(--on-desk-soft); text-decoration: none; }
-.nav a:hover { color: var(--on-desk); text-decoration: underline; text-decoration-color: var(--note); }
+/* The document: text, and beside it a margin that holds the block's notes. */
+.doc { padding-block: clamp(2.5rem, 2rem + 4vw, 5.5rem) clamp(4rem, 3rem + 5vw, 7rem); }
 
-.bar-cta {
-  border: 1px solid var(--desk-line); border-radius: 999px; padding: 0.3rem 1rem;
-  color: var(--on-desk); text-decoration: none; font-size: 0.9rem; white-space: nowrap;
-}
-.bar-cta:hover { border-color: var(--note); }
-
-.hero {
+.block {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 19rem;
+  grid-template-columns: minmax(0, var(--text)) minmax(0, var(--margin));
+  column-gap: var(--gap);
   align-items: start;
-  column-gap: clamp(2.5rem, 7vw, 7rem);
-  row-gap: 2.5rem;
-  padding-block: clamp(3rem, 2rem + 5vw, 6.5rem) clamp(3rem, 2rem + 4vw, 5.5rem);
+  margin-top: clamp(3.5rem, 2.5rem + 4vw, 6rem);
 }
+.block.intro { margin-top: 0; }
+.text { grid-column: 1; }
+.text > p { margin: 0 0 1em; }
+.text > p:last-child { margin-bottom: 0; }
+.margin { grid-column: 2; display: grid; gap: 0.9rem; align-content: start; }
 
-.hero-copy { position: relative; z-index: 1; }
-
-.headline {
-  margin: 0 0 1.6rem;
+h1 {
+  margin: 0 0 1.4rem;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(2.6rem, 1.4rem + 4.4vw, 5rem);
-  line-height: 1.3;
-  letter-spacing: 0.04em;
+  font-size: clamp(2.3rem, 1.6rem + 2.8vw, 3.5rem);
+  line-height: 1.35;
+  letter-spacing: 0.05em;
   font-feature-settings: "palt";
 }
-.phrase { display: inline-block; }
 
-.anchor {
-  color: var(--note-ink);
-  background: linear-gradient(var(--note), var(--note)) 0 70% / 100% 72% no-repeat;
-  padding-inline: 0.06em;
-  border-radius: 3px;
-}
+.lede { font-size: clamp(1.04rem, 1rem + 0.25vw, 1.16rem); line-height: 2.05; }
 
-.lede { margin: 0 0 1.75rem; max-width: 33em; font-size: clamp(1.02rem, 0.96rem + 0.3vw, 1.15rem); line-height: 2; }
+h2 { margin: 0 0 0.9rem; font-size: clamp(1.3rem, 1.15rem + 0.6vw, 1.55rem); line-height: 1.5; letter-spacing: 0.04em; font-weight: 600; }
 
-.facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: 0.9rem; color: var(--on-desk-soft); }
-.facts li::before {
-  content: ""; display: inline-block; width: 0.5em; height: 0.5em; margin-right: 0.55em;
-  border-radius: 2px; background: var(--note); vertical-align: 0.08em;
-}
+/* A marked word and its note, drawn like the app's highlight and floating note. */
+.anchor { color: inherit; background: var(--mark); border-bottom: 2px solid var(--mark-line); padding-inline: 0.08em; white-space: nowrap; }
 
-/* The download note, stuck in the hero's margin with a folded corner like the app icon. */
-.sticky-wrap { position: relative; z-index: 1; margin-top: 0.4rem; transform: rotate(-1.2deg); filter: drop-shadow(0 16px 18px var(--shadow)); }
-
-.sticky {
-  --focus: var(--note-ink);
-  --fold: 1.4rem;
+.note {
   position: relative;
-  padding: 1rem 1.1rem 1.4rem;
-  background: var(--note);
+  z-index: 1;
+  background: var(--note-bg);
   color: var(--note-ink);
-  border-radius: 6px 6px 0 6px;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%);
+  border: 1px solid var(--note-line);
+  border-radius: 8px;
+  box-shadow: 0 12px 24px -16px var(--shadow), 0 1px 2px rgb(70 58 20 / 0.08);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  overflow: hidden;
 }
-.sticky::after {
-  content: ""; position: absolute; right: 0; bottom: 0; width: var(--fold); height: var(--fold);
-  background: linear-gradient(to bottom right, var(--note-fold) 50%, transparent 50%);
+.note-head {
+  display: flex; align-items: center; gap: 0.45rem; margin: 0; padding: 0.5rem 0.8rem;
+  background: var(--note-head); border-bottom: 1px solid var(--note-line);
+  color: var(--note-soft); font-size: 0.8rem; font-weight: 600; line-height: 1.5;
 }
+.note-head svg { flex: none; }
+.note-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note > p:not(.note-head) { margin: 0.7rem 0.85rem; }
+.note code { font-size: 0.82em; }
+.note a { color: var(--note-ink); }
+.note-inline { margin: 0 0 1.1rem; }
 
-.sticky-head { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.8rem; font-size: 0.85rem; font-weight: 600; color: var(--note-soft); }
-
-.choices { display: grid; gap: 0.6rem; }
-
+.choices { display: grid; gap: 0.5rem; margin: 0.75rem 0.75rem 0; }
 .choice {
-  display: grid; gap: 0.1rem; padding: 0.7rem 0.9rem; border-radius: 8px;
-  color: var(--note-ink); text-decoration: none; line-height: 1.5;
-  background: rgb(255 255 255 / 0.45); border: 1px solid rgb(47 42 24 / 0.18);
+  display: grid; gap: 0.05rem; padding: 0.6rem 0.8rem; border-radius: 7px; line-height: 1.5;
+  color: var(--note-ink); text-decoration: none; background: rgb(255 255 255 / 0.5); border: 1px solid var(--note-line);
 }
-.choice strong { font-size: 1rem; }
-.choice span { font-size: 0.8rem; color: var(--note-soft); }
-.choice:hover { background: rgb(255 255 255 / 0.7); }
+.choice strong { font-size: 0.95rem; }
+.choice span { font-size: 0.78rem; color: var(--note-soft); }
+.choice:hover { background: rgb(255 255 255 / 0.8); }
+/* With a guess about the visitor's computer, its download leads. Without one, both look the same. */
+.choice.is-suggested { background: var(--suggested); border-color: var(--suggested); color: var(--suggested-ink); }
+.choice.is-suggested span { color: var(--suggested-soft); }
+.choice.is-suggested:hover { filter: brightness(1.1); }
+@media (prefers-color-scheme: dark) {
+  .choice { background: rgb(0 0 0 / 0.18); }
+  .choice:hover { background: rgb(0 0 0 / 0.3); }
+}
+.note-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 0.8rem; color: var(--note-soft); font-size: 0.78rem; }
+.note-mobile { font-size: 0.85rem; }
 
-/* Without a guess about the computer, both choices look the same. With one, it leads. */
-.choice.is-suggested { background: #3f5145; border-color: #3f5145; color: #f6f4ee; }
-.choice.is-suggested span { color: #dfe6dc; }
-.choice.is-suggested:hover { background: #34443a; }
-
-.sticky-mobile { margin: 0.8rem 0 0; font-size: 0.85rem; line-height: 1.7; }
-
-.sticky-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.2rem 1rem; margin: 0.9rem 0 0; font-size: 0.8rem; color: var(--note-soft); }
-.sticky-meta a { color: var(--note-ink); }
-
-/* The line from the marked word to the note, drawn by main.js. */
 .leader { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.leader path { fill: none; stroke: var(--note); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: var(--length, none); }
+.leader path { fill: none; stroke: var(--leader); stroke-width: 1.5; stroke-dasharray: 4 4; stroke-linecap: round; }
+.leader circle { fill: var(--leader); }
 
-.shot { margin: 0 auto; width: min(100% - 2 * var(--gutter), 76rem); }
-.shot img {
-  display: block; width: 100%;
-  border-radius: 14px; border: 1px solid rgb(37 45 39 / 0.12);
-  box-shadow: 0 40px 70px -40px var(--shadow), 0 2px 6px rgb(22 32 25 / 0.12);
+/* Screenshots. */
+figure { margin: 0; }
+.shot { margin-top: clamp(2rem, 1.5rem + 2vw, 3rem); }
+.shot img, .pair img { display: block; width: 100%; border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 24px 48px -32px var(--shadow); }
+figcaption { margin-top: 0.7rem; font-size: 0.85rem; line-height: 1.7; color: var(--ink-soft); }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2rem); margin-top: clamp(2rem, 1.5rem + 2vw, 3rem); }
+.pair img { aspect-ratio: 4 / 3; object-fit: cover; }
+@media (prefers-color-scheme: dark) {
+  .shot img, .pair img { filter: brightness(0.9); }
 }
-
-.shot-caption { margin-top: 1rem; margin-bottom: 0; text-align: center; font-size: 0.85rem; color: var(--ink-soft); }
-
-/* Sections on the paper. */
-.section { padding-block: clamp(4.5rem, 3rem + 5vw, 8rem); }
-.section + .section { padding-top: 0; }
-
-.section-title {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-display); font-weight: 600;
-  font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.4rem);
-  line-height: 1.4; letter-spacing: 0.06em; font-feature-settings: "palt";
-}
-
-.section-lede { margin: 0 0 2.5rem; max-width: 40em; color: var(--ink-soft); }
-
-.more { margin: 2rem 0 0; font-size: 0.95rem; }
-
-/* How it works: a real sequence of three steps. */
-.steps {
-  list-style: none; margin: 0; padding: 0; counter-reset: step;
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.5rem, 3vw, 2.5rem);
-}
-.step { counter-increment: step; }
-.step img {
-  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
-  border-radius: 10px; border: 1px solid var(--rule); background: var(--surface);
-}
-.step h3 { display: flex; align-items: baseline; gap: 0.6rem; margin: 1.25rem 0 0.4rem; font-size: 1.1rem; line-height: 1.5; }
-.step h3::before {
-  content: counter(step);
-  flex: none; display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 4px;
-  background: var(--note); color: var(--note-ink); font-family: var(--font-display); font-size: 0.95rem;
-  transform: translateY(0.15rem);
-}
-.step p { margin: 0; color: var(--ink-soft); }
-
-/* Features. */
-.feature {
-  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 9fr); align-items: center;
-  gap: clamp(1.5rem, 4vw, 4rem); margin-top: 2.5rem;
-}
-.feature + .feature { margin-top: clamp(3rem, 7vw, 6rem); }
-.feature-text h3 { margin: 0 0 0.6rem; font-size: 1.3rem; line-height: 1.5; }
-.feature-text p { margin: 0 0 0.8rem; }
-.feature-text .aside { font-size: 0.9rem; color: var(--ink-soft); }
-.feature-shot { display: block; width: 100%; border-radius: 12px; border: 1px solid var(--rule); box-shadow: 0 30px 50px -36px var(--shadow); }
-
-.minor {
-  list-style: none; margin: clamp(3.5rem, 7vw, 6rem) 0 0; padding: 2rem 0 0; border-top: 1px solid var(--rule);
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.75rem 2.5rem;
-}
-.minor h3 { margin: 0 0 0.35rem; font-size: 1rem; line-height: 1.5; }
-.minor p { margin: 0; font-size: 0.93rem; color: var(--ink-soft); }
 
 /* AI connections. */
-.ledger { margin: 0; border-top: 1px solid var(--rule); }
-.ledger-row { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 0.5rem 2rem; padding-block: 1.35rem; border-bottom: 1px solid var(--rule); }
-.ledger dt { font-weight: 600; }
-.ledger dd { margin: 0; color: var(--ink-soft); }
+.providers { margin: 1.25rem 0 0; }
+.providers dt { font-weight: 600; margin-top: 1rem; }
+.providers dd { margin: 0.15rem 0 0; color: var(--ink-soft); }
+.more { margin-top: 1.4rem; font-size: 0.95rem; }
 
-/* Privacy: each lead is marked like a word a note is attached to. */
-.points { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 2rem 3rem; }
-.points h3 { margin: 0 0 0.4rem; font-size: 1.05rem; line-height: 1.6; }
-.points mark { color: inherit; background: linear-gradient(transparent 55%, rgb(255 228 154 / 0.85) 55%); padding-inline: 0.05em; }
-.points p { margin: 0; color: var(--ink-soft); }
-
-@media (prefers-color-scheme: dark) {
-  .points mark { background: linear-gradient(transparent 55%, rgb(255 228 154 / 0.3) 55%); }
-}
-
-/* Downloads. */
-.downloads { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.25rem, 3vw, 2rem); align-items: start; }
-
-.dl { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: clamp(1.25rem, 1rem + 1.5vw, 2rem); }
-.dl h3 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; line-height: 1.4; letter-spacing: 0.04em; }
-.dl h4 { margin: 1.5rem 0 0.4rem; font-size: 0.95rem; }
-.dl .req { margin: 0.2rem 0 1.25rem; color: var(--ink-soft); font-size: 0.93rem; }
-.dl .file { display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; margin: 0.8rem 0 0; font-size: 0.85rem; color: var(--ink-soft); }
-.dl .trust { margin: 0.8rem 0 0; font-size: 0.93rem; }
+/* Downloads: two columns, Mac and Windows, each starting with its button. */
+.downloads { margin-top: clamp(4.5rem, 3rem + 6vw, 8rem); padding-top: clamp(2rem, 1.5rem + 2vw, 3rem); border-top: 1px solid var(--rule); }
+.downloads > h2 { margin-bottom: 0.3rem; }
+.release { margin: 0; color: var(--ink-soft); }
+.platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem var(--gap); margin-top: 2rem; align-items: start; }
+.platform h3 { margin: 0 0 0.8rem; font-size: 1.25rem; line-height: 1.4; letter-spacing: 0.04em; }
+.platform > p { margin: 0 0 0.9rem; font-size: 0.95rem; }
+.platform .file { display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; margin: 0.6rem 0 1rem; font-size: 0.85rem; color: var(--ink-soft); }
 
 .button {
-  display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.3rem; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1.25rem; border-radius: 9px;
   background: var(--button); color: var(--button-ink); font-weight: 600; text-decoration: none; line-height: 1.4;
 }
 .button:hover { filter: brightness(1.12); }
 
-.howto { margin: 0; padding-left: 1.4em; font-size: 0.95rem; }
-.howto li + li { margin-top: 0.35rem; }
+.howto { margin: 0 0 1.1rem; padding-left: 1.4em; font-size: 0.95rem; }
+.howto li + li { margin-top: 0.3rem; }
 
-.caution { margin: 1.1rem 0 0; padding: 0.8rem 1rem; border-left: 3px solid var(--note-fold); background: var(--caution); color: var(--caution-ink); font-size: 0.9rem; line-height: 1.8; border-radius: 0 6px 6px 0; }
-
-.hash { margin-top: 1.25rem; font-size: 0.88rem; }
-.hash summary { cursor: pointer; color: var(--ink-soft); width: fit-content; }
+.hash { font-size: 0.88rem; }
 .hash p { margin: 0.5rem 0 0; }
-.digest { display: block; padding: 0.6rem 0.75rem; border-radius: 6px; background: var(--paper); border: 1px solid var(--rule); word-break: break-all; font-size: 0.8rem; }
+.digest { display: block; padding: 0.55rem 0.7rem; border-radius: 6px; border: 1px solid var(--rule); word-break: break-all; font-size: 0.8rem; }
 
-.after { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem clamp(1.5rem, 4vw, 3.5rem); margin-top: clamp(2.5rem, 5vw, 4rem); }
-.after h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
-.after p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+.after { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem var(--gap); margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem); }
+.after h3 { margin: 0 0 0.3rem; font-size: 1rem; }
+.after p { margin: 0; color: var(--ink-soft); font-size: 0.93rem; }
+
+/* Disclosure: the same open and close marks for the questions and the checksums. */
+.faq summary, .hash summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker, .hash summary::-webkit-details-marker { display: none; }
+.faq summary::after, .hash summary::after { content: "＋"; flex: none; color: var(--ink-soft); font-weight: 400; }
+.faq details[open] summary::after, .hash[open] summary::after { content: "－"; }
+.hash summary { justify-content: flex-start; width: fit-content; color: var(--ink-soft); }
 
 /* Questions. */
-.faq { border-top: 1px solid var(--rule); max-width: 50rem; }
-.faq details { border-bottom: 1px solid var(--rule); }
-.faq summary {
-  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  padding-block: 1.1rem; cursor: pointer; font-weight: 600; list-style: none;
-}
-.faq summary::-webkit-details-marker { display: none; }
-.faq summary::after { content: "＋"; flex: none; color: var(--ink-soft); font-weight: 400; }
-.faq details[open] summary::after { content: "－"; }
-.faq details p { margin: 0 0 1.25rem; color: var(--ink-soft); max-width: 42em; }
+.faq { max-width: var(--text); margin-top: clamp(4rem, 3rem + 5vw, 7rem); }
+.faq > h2 { margin-bottom: 0.6rem; }
+.faq details { border-top: 1px solid var(--rule); }
+.faq details:last-child { border-bottom: 1px solid var(--rule); }
+.faq summary { padding-block: 0.95rem; font-weight: 600; }
+.faq details p { margin: 0 0 1.1rem; color: var(--ink-soft); }
 
-/* Footer: back on the desk. */
-.foot { --focus: var(--note); --link: var(--on-desk); background: var(--desk); color: var(--on-desk); padding-block: 3.5rem 3rem; }
-.foot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 2rem; }
-.foot-brand p { margin: 0.6rem 0 0; font-family: var(--font-display); color: var(--on-desk-soft); }
-.foot-info p { margin: 0 0 0.75rem; }
-.foot-links { list-style: none; margin: 0 0 1.5rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; }
-.foot-note { font-size: 0.82rem; color: var(--on-desk-soft); }
+/* Footer, in the icon's green. */
+.foot { --focus: #ffe49a; --link: var(--on-green); background: var(--green); color: var(--on-green); padding-block: 2.75rem; }
+.foot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; gap: 1.5rem 2rem; }
+.foot-brand { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-weight: 600; }
+.foot-info p { margin: 0 0 0.7rem; }
+.foot-links { list-style: none; margin: 0 0 1.2rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1.3rem; }
+.foot-note { font-size: 0.82rem; color: var(--on-green-soft); }
 
-@media (max-width: 960px) {
-  .nav { display: none; }
-  .bar-cta { margin-left: auto; }
-}
-
+/* Narrow screens: notes follow their text, and the lines are left out. */
 @media (max-width: 860px) {
-  .hero { grid-template-columns: minmax(0, 1fr); }
-  .sticky-wrap { max-width: 22rem; transform: rotate(-0.8deg); }
-  .steps { grid-template-columns: minmax(0, 1fr); max-width: 34rem; }
-  .feature { grid-template-columns: minmax(0, 1fr); }
-  .downloads, .after { grid-template-columns: minmax(0, 1fr); }
-  .ledger-row { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; }
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .margin { grid-column: 1; margin-top: 1.1rem; max-width: 24rem; }
+  .leader { display: none; }
+  .platforms, .after { grid-template-columns: minmax(0, 1fr); }
   .foot-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* One moment of motion: the word is marked, the line is drawn, the note settles. */
-@media (prefers-reduced-motion: no-preference) {
-  .anchor { animation: mark 0.7s 0.2s cubic-bezier(0.65, 0, 0.35, 1) backwards; }
-  .js .leader.is-ready path { animation: draw 0.8s 0.6s cubic-bezier(0.65, 0, 0.35, 1) backwards; }
-  .js .sticky-wrap { animation: settle 0.6s 1.15s cubic-bezier(0.2, 0.9, 0.25, 1) backwards; }
-  html:focus-within { scroll-behavior: smooth; }
-}
-
-@keyframes mark { from { background-size: 0% 72%; color: var(--on-desk); } }
-@keyframes draw { from { stroke-dashoffset: var(--length); } }
-@keyframes settle { from { transform: rotate(-3.4deg) translate(0.3rem, -0.5rem); } }
-
-@media (max-width: 860px) {
-  @keyframes settle { from { transform: rotate(-2.6deg) translate(0.2rem, -0.4rem); } }
+@media (max-width: 560px) {
+  .pair { grid-template-columns: minmax(0, 1fr); }
 }

@@ -23,9 +23,9 @@ test("fills the page with the repository and the latest release, and loads nothi
     buildSite({ out, repo: "owner/Fussenn", release: release(), sums: sums() });
     const html = readFileSync(join(out, "index.html"), "utf8");
     assert.doesNotMatch(html, /\{\{|\}\}/);
-    assert.match(html, /バージョン 0\.3\.0（2026年11月20日）/);
-    assert.match(html, /180 MB/);
-    assert.match(html, /131 MB/);
+    assert.match(html, /バージョン\u00a00\.3\.0（2026年11月20日）/);
+    assert.match(html, /180\u00a0MB/);
+    assert.match(html, /131\u00a0MB/);
     assert.ok(html.includes(hash("a")) && html.includes(hash("b")));
     for (const { name } of releaseAssets) assert.ok(html.includes(`href="https://github.com/owner/Fussenn/releases/latest/download/${name}"`), name);
     assert.match(html, /<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self';/);
