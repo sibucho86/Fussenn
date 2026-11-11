@@ -17,7 +17,11 @@
 - Obsidian ZIP・バックアップの書き出しではOSの保存ダイアログが開きます。
 - 初回のChatGPTログインはブラウザで行い、認証後にアプリへ戻ります。
 
-現在は未署名の試作版です。Windowsインストーラーに発行元の署名はありません。自動更新はなく、新しいビルドは手動で入れ替えます。
+Windowsのインストーラーとアプリには、発行元の署名をしません。コード署名の証明書には、毎年費用がかかるためです。自動更新はなく、新しいビルドは手動で入れ替えます。
+
+インターネットから入手したインストーラーを開くと、Microsoft Defender SmartScreenが「Windows によって PC が保護されました」と表示することがあります。「詳細情報」を押すと、発行元は「不明な発行元」と表示されます。入手元が正しいことを確かめてから「実行」を押すと、インストールを続けられます。
+
+Windows 11でスマート アプリ コントロールが有効な場合は、署名がなく、Microsoftが安全と判断できないアプリがブロックされます。新しいアプリのFussennもブロックされる見込みで、アプリごとに許可する方法はありません。スマート アプリ コントロールをオフにすれば使えますが、ほかのアプリに対する保護も外れます。この状態での動作は、まだ確認していません。
 
 ## 保存先と認証
 
@@ -128,7 +132,7 @@ FUSSENN_MAC_SIGN=1 FUSSENN_MAC_NOTARIZE=1 APPLE_KEYCHAIN_PROFILE="<プロファ�
 
 electron-builderのログには、署名に使った証明書の名前（組織名とチームID）と指紋が表示されます。証明書が見つからないときは、キーチェーンにある証明書の一覧も表示されます。ログを共有するときは、これらを伏せてください。
 
-公証していない署名済みアプリは、ダウンロードして開くとGatekeeperに止められます。一般に配布するには公証が必要です。Windowsの署名には、まだ対応していません。
+公証していない署名済みアプリは、ダウンロードして開くとGatekeeperに止められます。一般に配布するには公証が必要です。Windowsでは署名しません（[Windowsで使う](#windowsで使う)）。
 
 ## Mac対応の範囲
 
@@ -146,7 +150,7 @@ Apple Silicon / Intel用のビルド設定と、Finder起動時のCLI検索、Ma
 
 ## 検証状況と公開準備
 
-WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Intel Mac・Linuxの画面を使った実機操作、Macの公証、Windowsの署名は残っています。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
+WindowsとApple Silicon Macで通常テスト・ブラウザE2E・配布版テストを確認しています。GitHub Actionsでは、Windows x64・macOS arm64・macOS x64・Linux x64のビルドと配布版テストが成功しています。ライセンス原文は `resources/licenses/` に集約し、prepareとpackの前後で検査します。アプリのメニューからバージョンとライセンスを確認できます。Apple Silicon Macでは、署名と公証も確認しました。Intel Mac・Linuxの画面を使った実機操作と、署名・公証したIntel版の確認は残っています。Windowsでは署名しません。機能の変更は [変更履歴](../CHANGELOG.md)、最新の公開準備状況は [公開準備](open-source-readiness.md) を参照してください。
 
 ## 実装の境界
 
