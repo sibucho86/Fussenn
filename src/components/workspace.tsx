@@ -1,11 +1,13 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, BookOpen, ChevronDown, EyeOff, Feather, FileText, Settings2, ShieldCheck, Sparkles, Spline, StickyNote, X } from "lucide-react";
 import type { Conversation, ConversationDetail, ConversationFolder, ProviderKind, PublicSettings } from "@/lib/types";
 import { api } from "@/lib/api";
 import { useChatStream, applyStreamEvent } from "@/hooks/use-chat-stream";
 import { Composer } from "@/components/chat/composer";
 import { MessageList } from "@/components/chat/messages";
+import { ChatOptionsBar, ChatSetupContext, resolveChatControls } from "@/components/chat/chat-controls";
+import { useChatPreferences } from "@/lib/chat-preferences";
 import { NoteCanvas, type NoteCanvasHandle } from "@/components/sidenote/note-canvas";
 import { NoteIndex } from "@/components/sidenote/note-index";
 import { ConversationSidebar } from "@/components/conversations/sidebar";
@@ -42,6 +44,10 @@ export default function Workspace() {
   const followBottom = useRef(true);
   const sendingMain = useRef(false);
   const stream = useChatStream();
+  const activeProvider = detail?.providerKind ?? provider;
+  const activeModel = detail ? detail.model : model;
+  const chatSetup = useMemo(() => ({ kind: activeProvider, model: activeModel, codexModels }), [activeProvider, activeModel, codexModels]);
+  const controls = resolveChatControls(chatSetup, useChatPreferences());
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -61,18 +67,29 @@ export default function Workspace() {
     void load();
     return () => { cancelled = true; };
   }, []);
+  // The model list also tells which reasoning efforts each model accepts, for new and existing conversations.
+  const needsCodexModels = !!settings && activeProvider === "codex";
   useEffect(() => {
-    if (!settings || provider !== "codex" || detail) return;
-    let cancelled = false;
-    void api<CodexModel[]>("providers/codex/models").then((models) => {
-      if (cancelled) return;
-      setCodexModels(models);
-      setModel((current) => current || (models.find((m) => m.isDefault) ?? models[0])?.model || "");
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, [provider, detail, settings]);
+    if (!needsCodexModels) return;
+    let cancelled = false, loadedAt = 0, pending = false;
+    const load = () => {
+      if (pending || Date.now() - loadedAt < 60_000) return;
+      pending = true;
+      void api<CodexModel[]>("providers/codex/models").then((models) => {
+        if (cancelled) return;
+        loadedAt = Date.now();
+        setCodexModels(models);
+        setModel((current) => current || (models.find((m) => m.isDefault) ?? models[0])?.model || "");
+      }).catch(() => {}).finally(() => { pending = false; });
+    };
+    load();
+    // Codex may become available or change its models meanwhile (sign-in, update); check again when the window comes back.
+    window.addEventListener("focus", load);
+    return () => { cancelled = true; window.removeEventListener("focus", load); };
+  }, [needsCodexModels]);
   useEffect(() => {
-    if (!followBottom.current) return;
+    // The welcome page has no answer to follow; keep it at its top, which matters with larger text.
+    if (!followBottom.current || !detail?.messages.length) return;
     const frame = requestAnimationFrame(() => {
       const scroll = scrollRef.current;
       if (scroll) scroll.scrollTo({ top: scroll.scrollHeight, behavior: "instant" });
@@ -146,7 +163,7 @@ export default function Workspace() {
         const autoTitle = Array.from(text.replace(/\s+/g, " ")).slice(0, 50).join("");
         setDetail((current) => current?.id === id ? { ...current, messages: applyStreamEvent(current.messages, event), title: current.messages.length === 0 && !current.titleEdited ? autoTitle : current.title } : current);
         if (event.type === "started" && conversation.messages.length === 0) setConversations((rows) => rows.map((c) => c.id === id && !c.titleEdited ? { ...c, title: autoTitle } : c));
-      });
+      }, controls.options);
       await refreshList();
       return success;
     } catch (e) { setError(errorText(e)); return false; }
@@ -171,8 +188,7 @@ export default function Workspace() {
     document.addEventListener("click", leave, true);
     return () => document.removeEventListener("click", leave, true);
   }, [detail?.document?.editable]);
-  const activeProvider = detail?.providerKind ?? provider;
-  return <div className="app-shell">
+  return <ChatSetupContext.Provider value={chatSetup}><div className="app-shell">
     <ConversationSidebar conversations={conversations} folders={folders} activeId={detail?.id} onNewChat={() => void newChat()} onNewManuscript={() => void beginManuscript()} onImport={() => { void saveBeforeLeaving().then((ok) => { if (ok) setImportOpen(true); }); }} onSelect={(id) => void selectConversation(id)} onConversationSaved={conversationSaved} onConversationMoved={conversationMoved}
       onConversationDeleted={(id) => { setConversations((rows) => rows.filter((c) => c.id !== id)); if (detail?.id === id) void newChat(true); }}
       onFolderSaved={(row) => setFolders((rows) => rows.some((f) => f.id === row.id) ? rows.map((f) => f.id === row.id ? row : f) : [...rows, row])}
@@ -191,13 +207,14 @@ export default function Workspace() {
             <div className="welcome-demo" aria-hidden="true"><div className="demo-page"><span className="demo-caption">AIとの会話</span><div className="demo-line" /><p>AIと外部のデータをつなぐ<br />その中で <mark>Resource</mark> は…</p><div className="demo-line short" /></div><svg className="demo-connector" viewBox="0 0 100 70"><path d="M5 5 C80 5 20 60 90 60" /></svg><div className="demo-note"><span><StickyNote size={13} />Resource</span><p>これって何？</p><span className="demo-note-answer"><Sparkles size={12} />この文脈で、もう少し。</span></div></div>
             <div className="starter-grid"><button onClick={() => void sendMain("MCPについて、全体像から教えて") } disabled={stream.busy}><BookOpen size={17} /><span>新しいことを学ぶ<small>MCPについて、全体像から教えて</small></span><ArrowUpRight size={15} /></button><button onClick={() => void sendMain("AIの仕組みを、身近な例で説明して") } disabled={stream.busy}><Sparkles size={17} /><span>仕組みをひもとく<small>AIの仕組みを、身近な例で</small></span><ArrowUpRight size={15} /></button></div>
             <button className="welcome-import" onClick={() => setImportOpen(true)}><FileText size={15} />手元のMarkdown・テキスト・PDFを開く</button>
-          </div> : <div className="main-column"><div className="conversation-topline"><span className="eyebrow">A CONVERSATION, WITH ROOM TO THINK</span><span className="date-label">{new Date(detail.createdAt).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}</span></div><MessageList messages={detail.messages} onEdit={(id) => void beginManuscript(id)} /><div className="selection-tip"><StickyNote size={13} />回答の気になる言葉を選択して、付箋を貼れます。</div></div>}
+          </div> : <div className="main-column"><div className="conversation-topline"><span className="eyebrow">A CONVERSATION, WITH ROOM TO THINK</span><span className="date-label">{new Date(detail.createdAt).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}</span></div><MessageList messages={detail.messages} activity={stream.activity} onEdit={(id) => void beginManuscript(id)} /><div className="selection-tip"><StickyNote size={13} />回答の気になる言葉を選択して、付箋を貼れます。</div></div>}
         </NoteCanvas>}
       </div>
       {detail?.document ? <footer className="document-dock"><div><FileText size={16} /><span>{detail.document.editable ? "付箋で文章を練り、「原稿案」から本文へ反映できます。" : "本文を選んで「＋付箋」から、メモやAIへの質問を残せます。"}<small>{detail.model ? `付箋AI：${providerLabels[detail.providerKind]} · ${detail.model}` : "AIは未設定です。メモだけでも使えます。"}</small></span></div><button className="secondary-button" disabled={!settings || loading} onClick={() => setDocumentAISettingsOpen(true)}><Settings2 size={13} /> 付箋AIの設定</button></footer> : <footer className="composer-dock">
         {!detail && settings && <div className="provider-controls"><label><span>Provider</span><select aria-label="Provider" value={provider} onChange={(e) => { const p = e.target.value as ProviderKind; setProvider(p); setModel(modelFor(settings, p)); }}>{Object.entries(providerLabels).filter(([p]) => p !== "mock" || settings.mockEnabled).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><ChevronDown size={12} /></label><label><span>Model</span>{provider === "codex" ? <select aria-label="Model" value={model} onChange={(e) => setModel(e.target.value)}><option value="">モデルを選択</option>{model && !codexModels.some((m) => m.model === model) && <option value={model}>{model}</option>}{codexModels.map((m) => <option key={m.id} value={m.model}>{m.displayName}</option>)}</select> : <input aria-label="Model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="モデル名" disabled={provider === "mock"} />}</label></div>}
         {/* The composer is replaced when a conversation finishes loading; text typed before that would be lost. */}
-        <Composer key={detail?.id ?? "new"} onSend={sendMain} busy={stream.busy || loading} readOnly={loading} />
+        <Composer key={detail?.id ?? "new"} onSend={sendMain} busy={stream.busy || loading} readOnly={loading} onStop={stream.canStop ? stream.stop : undefined} options={<ChatOptionsBar disabled={loading} />} />
+        <span className="sr-only" aria-live="polite" aria-atomic="true" data-testid="answer-announcer">{stream.announcement}</span>
         <div className="composer-caption"><span><ShieldCheck size={12} />会話と付箋は、このPCだけに保存されます。</span><span>理解するための、小さな余白。</span></div>
       </footer>}
     </main>{noteIndexOpen && <NoteIndex key={detail?.id ?? "new"} notes={detail?.notes ?? []} title={detail?.title ?? "新しい会話"} isDocument={!!detail?.document} onClose={() => setNoteIndexOpen(false)} onReveal={async (id) => { followBottom.current = false; return await noteCanvas.current?.revealNote(id) ?? false; }} />}
@@ -209,7 +226,7 @@ export default function Workspace() {
       setDetail((current) => current?.id === row.id ? { ...current, providerKind: row.providerKind, model: row.model, notes: current.notes.map((note) => ({ ...note, providerSessionId: null })) } : current);
     }} />}
     <div className="desktop-hint">Fussennはデスクトップ向けです。画面幅1024px以上でお使いください。</div>
-  </div>;
+  </div></ChatSetupContext.Provider>;
 }
 function modelFor(settings: PublicSettings, provider: ProviderKind) {
   return provider === "mock" ? "mock-demo" : provider === "codex" ? settings.codexDefaultModel : provider === "openai" ? settings.openaiModel : settings.compatibleModel;

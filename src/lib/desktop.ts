@@ -3,7 +3,7 @@ const saves = new Set<Save>();
 const writes = new Set<Promise<unknown>>();
 declare global {
   interface Window {
-    fussennDesktop?: { openLogin: (url: string) => Promise<void>; onBeforeClose: (save: Save) => () => void };
+    fussennDesktop?: { openLogin: (url: string) => Promise<void>; onBeforeClose: (save: Save) => () => void; setTheme?: (theme: "system" | "light" | "dark") => Promise<void> };
   }
 }
 export function registerDesktopSave(save: Save) { saves.add(save); return () => { saves.delete(save); }; }

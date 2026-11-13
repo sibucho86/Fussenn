@@ -171,6 +171,33 @@ test("refuses to close during generation and reuses a running instance", async (
   await closeNormally();
 });
 
+test("matches the window to the chosen theme across restarts and stops an answer from the composer", async () => {
+  await page.getByRole("link", { name: /設定/ }).click();
+  await page.getByRole("radio", { name: "ダーク" }).check();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect.poll(() => app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe("dark");
+  await expect.poll(async () => JSON.parse(await readFile(join(data, "desktop", "appearance.json"), "utf8"))).toEqual({ theme: "dark" });
+  await page.getByRole("radio", { name: "最大" }).check();
+  // The page may not set the theme of other origins or arbitrary values.
+  expect(await page.evaluate(() => window.fussennDesktop!.setTheme!("sepia" as "dark").then(() => "accepted", () => "refused"))).toBe("refused");
+  await closeNormally();
+  await launch();
+  expect(await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe("dark");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => getComputedStyle(document.body).fontSize)).toBe("21px");
+  await page.getByLabel("メッセージ", { exact: true }).fill("[slow] 止める確認");
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await expect(page.getByTestId("answer-progress")).toContainText("考えています");
+  await expect.poll(async () => (await api("health")).body.activeGenerations).toBe(1);
+  // The button ignores clicks in its first moments, which belong to a double click on "send".
+  await page.waitForTimeout(400);
+  await page.getByRole("button", { name: "回答を止める", exact: true }).click();
+  await expect(page.locator(".message-list").getByText("回答を止めました。", { exact: true })).toBeVisible();
+  // The stop reaches the private server through the fussenn:// protocol and ends the generation.
+  await expect.poll(async () => (await api("health")).body.activeGenerations).toBe(0);
+  await closeNormally();
+});
+
 test("keeps one window, blocks unsafe navigation and opens OAuth only in the external browser", async () => {
   await app.evaluate(({ shell, dialog }) => {
     (globalThis as unknown as { opened: string[] }).opened = [];

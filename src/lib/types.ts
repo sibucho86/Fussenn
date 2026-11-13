@@ -12,6 +12,8 @@ export type Message = {
   status: "streaming" | "complete" | "error";
   createdAt: number;
   updatedAt: number;
+  /** Set on screen only, when the person stopped this answer; it is saved like any interrupted answer. */
+  stopped?: boolean;
 };
 export type Conversation = {
   id: string;
@@ -83,8 +85,13 @@ export type PublicSettings = Settings & {
   openaiKeyConfigured: boolean;
   compatibleKeyConfigured: boolean;
 };
+/** What the AI is doing while an answer is pending. `detail` is the AI's own progress note, a search query, or the host name of a page being read. */
+export type ChatActivity = { kind: "thinking"; detail?: string } | { kind: "searching"; detail?: string } | { kind: "reading"; detail?: string } | { kind: "writing" };
+/** Per-question choices. A null effort keeps the model's own default. */
+export type ChatOptions = { effort: string | null; webSearch: boolean };
 export type StreamEvent =
   | { type: "started"; userMessage: Message; assistantMessage: Message }
   | { type: "text_delta"; text: string }
+  | { type: "activity"; activity: ChatActivity }
   | { type: "completed"; messageId: string; text: string }
-  | { type: "error"; message: string; messageId?: string };
+  | { type: "error"; message: string; messageId?: string; stopped?: boolean };

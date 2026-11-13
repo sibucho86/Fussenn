@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { Markdown } from "@/components/common/markdown";
 import { Composer } from "@/components/chat/composer";
+import { AnswerProgress, ChatOptionsBar, useChatControls } from "@/components/chat/chat-controls";
 import { NoteColorPicker } from "./note-color-picker";
 import { registerDesktopSave } from "@/lib/desktop";
 import { useProposal } from "@/components/manuscripts/use-proposal";
@@ -34,6 +35,7 @@ export function FloatingNote({ note, active, missing, canMinimize, onMinimize, e
   const queue = useRef(Promise.resolve());
   const id = note.id;
   const stream = useChatStream();
+  const controls = useChatControls();
   const historyRef = useRef<HTMLDivElement>(null);
   useEffect(() => { historyRef.current?.scrollTo({ top: historyRef.current.scrollHeight }); }, [note.messages, note.layout.minimized]);
   async function ask(text: string) {
@@ -41,7 +43,7 @@ export function FloatingNote({ note, active, missing, canMinimize, onMinimize, e
     if (note.manuscript?.appliedRevision != null && !await manuscriptAction("revise")) return false;
     onChange({ mode: "chat" });
     if (note.layout.height < 360) onLayout({ height: 360 }, true);
-    return stream.send("note", note.id, text || (note.manuscript ? "現在の選択箇所について、原稿全体の文脈に沿って推敲の相談に乗ってください。" : `選択した「${note.selectedText}」について、この${note.contextSnapshot.source ? "資料" : "会話"}の文脈に沿ってわかりやすく説明してください。`), onChatEvent);
+    return stream.send("note", note.id, text || (note.manuscript ? "現在の選択箇所について、原稿全体の文脈に沿って推敲の相談に乗ってください。" : `選択した「${note.selectedText}」について、この${note.contextSnapshot.source ? "資料" : "会話"}の文脈に沿ってわかりやすく説明してください。`), onChatEvent, controls.options);
   }
   function saveMemo() {
     if (timer.current) clearTimeout(timer.current);
@@ -121,6 +123,8 @@ export function FloatingNote({ note, active, missing, canMinimize, onMinimize, e
     onResizeStop={(_e, _direction, ref, _delta, position) => onLayout({ x: Math.max(0, Math.round(position.x)), y: Math.max(0, Math.round(position.y)), width: Math.round(ref.offsetWidth), height: Math.round(ref.offsetHeight) }, true)}
     resizeHandleComponent={{ bottomRight: <span className="note-resize-handle" aria-label="付箋のサイズ変更">⌟</span> }}>
     <section className="note-inner" data-note-id={id} data-testid="floating-note" tabIndex={-1} aria-label={`付箋: ${note.selectedText}`}>
+      {/* Present before an answer starts, since a live region inserted together with its text is often not read out. */}
+      <span className="sr-only" aria-live="polite" aria-atomic="true" data-testid="answer-announcer">{stream.announcement && `付箋「${note.selectedText.slice(0, 24)}」：${stream.announcement}`}</span>
       <header className="note-drag-handle"><StickyNote size={13} /><span className="note-title" title={note.selectedText} onDoubleClick={() => void collapse()}>{note.selectedText}</span><GripHorizontal className="note-grip" size={14} /><button className="icon-button note-no-drag" aria-label="引き出し線を調整" aria-pressed={editingConnector} title="引き出し線を調整" disabled={!canMinimize} onClick={onEditConnector}><Spline size={14} /></button><NoteColorPicker noteId={id} color={note.color} onChange={(color) => onChange({ color })} /><button className="icon-button note-no-drag" aria-label={note.layout.collapsed ? "付箋を開く" : "付箋を折りたたむ"} onClick={() => void collapse()}>{note.layout.collapsed ? <ChevronDown size={14} /> : <Minus size={14} />}</button><button className="icon-button note-no-drag" aria-label="マーカーにしまう" title={canMinimize ? "マーカーにしまう · クリックで戻せます" : "元のマーカーを確認しています"} disabled={!canMinimize || minimizing} onClick={() => void minimize()}><Minimize2 size={14} /></button></header>
       {!note.layout.collapsed && <>
         {missing && <div className="anchor-missing">元の文章を再特定できません。「{note.selectedText}」</div>}
@@ -131,9 +135,9 @@ export function FloatingNote({ note, active, missing, canMinimize, onMinimize, e
         </div>}
         {proposalOpen && note.manuscript ? <div className="note-proposal-body"><label htmlFor={`proposal-${id}`}>本文に反映する原稿案</label><textarea id={`proposal-${id}`} aria-label="本文に反映する原稿案" value={note.manuscript.draft} maxLength={20_000} readOnly={note.manuscript.appliedRevision !== null} placeholder="相談で作った文章をここで仕上げます。" onChange={(e) => proposal.change(e.target.value)} onBlur={() => void proposal.save()} /><div><span>{proposal.state}</span><button className="note-ask" disabled={acting || !note.manuscript.draft.trim() || note.manuscript.from === null || note.manuscript.appliedRevision !== null} onClick={() => void manuscriptAction("preview")}>本文へ反映…</button></div></div> : note.mode === "memo" ? <div className="note-memo-body"><textarea aria-label="付箋のメモ" className="note-memo" placeholder="メモを書く…" maxLength={20_000} value={note.memo} onChange={(e) => changeMemo(e.target.value)} onBlur={saveMemo} /><div className="note-memo-footer"><span>{saveState}</span><button className="note-ask" disabled={stream.busy} onClick={() => { saveMemo(); void ask(note.memo.trim()); }}><Sparkles size={12} />AIに聞く</button></div></div> : <div className="note-chat-body">
           <div className="note-mode-bar"><span><Sparkles size={10} />{note.manuscript ? "原稿の全文と選択箇所を参照" : note.contextSnapshot.source ? "資料の全文と選択箇所を参照" : "文脈を引き継いだ会話"}</span><button onClick={() => { onChange({ mode: "memo" }); void api(`notes/${id}`, { method: "PATCH", body: JSON.stringify({ mode: "memo" }) }).catch(() => setSaveError("モードを保存できませんでした。")); }}>メモへ</button></div>
-          <div className="note-chat-history" ref={historyRef}>{note.messages.map((message) => <div key={message.id} className={`note-chat-message ${message.role}`} data-testid={`note-message-${message.role}`}><span>{message.role === "user" ? "あなた" : "AI"}</span><div className="markdown"><Markdown>{message.content || (message.status === "streaming" ? "考えています…" : "回答が中断されました。")}</Markdown></div>{note.manuscript && note.manuscript.appliedRevision === null && message.role === "assistant" && message.status === "complete" && message.content.length <= 20_000 && <button className="note-use-answer" onClick={() => adoptAnswer(message.content)}>原稿案に使う</button>}{message.status === "error" && <small>回答が中断されました。</small>}</div>)}</div>
+          <div className="note-chat-history" ref={historyRef}>{note.messages.map((message) => <div key={message.id} className={`note-chat-message ${message.role}`} data-testid={`note-message-${message.role}`}><span>{message.role === "user" ? "あなた" : "AI"}</span><div className="markdown">{message.content ? <Markdown>{message.content}</Markdown> : message.status !== "streaming" ? !message.stopped && <Markdown>回答が中断されました。</Markdown> : !stream.activity && <Markdown>考えています…</Markdown>}</div>{message.status === "streaming" && stream.activity && (!message.content || stream.activity.kind !== "writing") && <AnswerProgress compact activity={stream.activity} />}{note.manuscript && note.manuscript.appliedRevision === null && message.role === "assistant" && message.status === "complete" && message.content.length <= 20_000 && <button className="note-use-answer" onClick={() => adoptAnswer(message.content)}>原稿案に使う</button>}{message.status === "error" && (message.stopped ? <small className="note-stopped">回答を止めました。</small> : <small>回答が中断されました。</small>)}</div>)}</div>
           {stream.error && <div className="note-chat-error" role="alert">{stream.error}</div>}
-          <Composer compact onSend={ask} busy={stream.busy} draft={{ text: questionDraft, onChange: setQuestionDraft }} placeholder="もう少し、聞いてみる…" />
+          <Composer compact onSend={ask} busy={stream.busy} onStop={stream.canStop ? stream.stop : undefined} options={<ChatOptionsBar compact />} draft={{ text: questionDraft, onChange: setQuestionDraft }} placeholder="もう少し、聞いてみる…" />
         </div>}
         {note.mode === "memo" && note.messages.length > 0 && <button className="note-back-to-chat" onClick={() => { onChange({ mode: "chat" }); void api(`notes/${id}`, { method: "PATCH", body: JSON.stringify({ mode: "chat" }) }).catch(() => setSaveError("モードを保存できませんでした。")); }}>付箋の会話に戻る</button>}
         {note.manuscript && note.manuscript.historyFrom > 0 && <p className="note-context-changed">参照を更新済み。以前の会話は記録として残り、以後の相談は版 {note.manuscript.contextRevision} から始まります。</p>}

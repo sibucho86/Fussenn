@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, protocol, session, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, protocol, session, shell } from "electron";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -37,6 +37,14 @@ let checkingClose = false;
 let downloads = 0;
 const token = randomBytes(32).toString("hex");
 const logFile = join(dataDirectory, "desktop", "server.log");
+// The page keeps its theme in browser storage; the window frame, menus and dialogs follow it through this file.
+const appearanceFile = join(dataDirectory, "desktop", "appearance.json");
+const THEMES = new Set(["system", "light", "dark"]);
+function savedTheme() {
+  try { const { theme } = JSON.parse(readFileSync(appearanceFile, "utf8")); return THEMES.has(theme) ? theme : "system"; } catch { return "system"; }
+}
+// The page's paper color in each theme (--paper in globals.css), shown while the page loads or resizes.
+const windowBackground = () => nativeTheme.shouldUseDarkColors ? "#181716" : "#faf9f6";
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function log(text) {
   mkdirSync(dirname(logFile), { recursive: true, mode: 0o700 });
@@ -191,7 +199,7 @@ async function requestQuit() {
 function createWindow() {
   window = new BrowserWindow({
     icon: process.platform === "win32" ? join(here, "icons", "fussenn.ico") : iconPath,
-    title: "Fussenn", width: 1440, height: 960, minWidth: 1024, minHeight: 700, backgroundColor: "#f8f6f0", show: false,
+    title: "Fussenn", width: 1440, height: 960, minWidth: 1024, minHeight: 700, backgroundColor: windowBackground(), show: false,
     webPreferences: { preload: join(here, "preload.cjs"), sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true, webviewTag: false },
   });
   window.once("ready-to-show", () => window.show());
@@ -220,6 +228,12 @@ if (!app.requestSingleInstanceLock()) {
         if (state === "interrupted") void dialog.showMessageBox(window, { type: "error", message: "ファイルを保存できませんでした。もう一度お試しください。" });
       });
     });
+    ipcMain.handle("fussenn:theme", (event, theme) => {
+      if (event.sender !== window?.webContents || !isAppUrl(event.senderFrame?.url) || !THEMES.has(theme)) throw new Error("配色を確認してください。");
+      if (nativeTheme.themeSource !== theme) nativeTheme.themeSource = theme;
+      window.setBackgroundColor(windowBackground());
+      if (savedTheme() !== theme) { try { writeFileSync(appearanceFile, JSON.stringify({ theme }), { mode: 0o600 }); } catch { /* Applies until the app closes. */ } }
+    });
     ipcMain.handle("fussenn:login", async (event, url) => {
       if (event.sender !== window?.webContents || !isAppUrl(event.senderFrame?.url) || typeof url !== "string" || !isLoginUrl(url)) throw new Error("認証ページのURLを確認してください。");
       await shell.openExternal(url);
@@ -240,6 +254,9 @@ if (!app.requestSingleInstanceLock()) {
     ]));
     app.setAboutPanelOptions({ applicationName: brand.productName, applicationVersion: app.getVersion(), copyright: `Copyright © 2026 ${brand.author}`, iconPath, credits: "ライセンス・著作権表示は「ヘルプ → ライセンスを開く」で確認できます。" });
     if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(iconPath);
+    nativeTheme.themeSource = savedTheme();
+    // "Follow the system" also follows a change of the system theme while the app runs.
+    nativeTheme.on("updated", () => { if (window && !window.isDestroyed()) window.setBackgroundColor(windowBackground()); });
     try { await startServer(); installProtocol(); createWindow(); }
     catch (error) { dialog.showErrorBox("Fussennを起動できません", error.message); quitting = true; await stopServer(); app.quit(); }
   });

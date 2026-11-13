@@ -5,6 +5,7 @@ import { mainStream, noteStream, generations } from "@/server/services/generatio
 import { errorResponse, guardLocalRequest, readBody } from "@/server/http";
 import { AppError } from "@/server/errors";
 import { PROVIDER_KINDS } from "@/lib/types";
+import { EFFORT_PATTERN } from "@/lib/chat-options";
 import { NOTE_COLORS } from "@/lib/note-colors";
 import { CONNECTOR_SIDES } from "@/lib/connector-types";
 import { getCodexClient } from "@/server/providers/codex/client";
@@ -18,7 +19,7 @@ import { manuscriptRoute } from "@/server/manuscript-routes";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type RouteContext = { params: Promise<{ path: string[] }> };
-const chatInput = z.object({ ownerId: z.string().uuid(), text: z.string().trim().min(1).max(20_000) });
+const chatInput = z.object({ ownerId: z.string().uuid(), text: z.string().trim().min(1).max(20_000), effort: z.string().regex(EFFORT_PATTERN).nullish(), webSearch: z.boolean().optional() });
 const noteInput = z.object({
   conversationId: z.string().uuid(), parentMessageId: z.string().uuid(),
   selectedText: z.string().min(1).max(500).refine((v) => !!v.trim()),
@@ -112,12 +113,12 @@ async function dispatch(request: Request, context: RouteContext) {
       }
     }
     if (route === "chat/main" && method === "POST") {
-      const input = await readBody(request, chatInput);
-      return mainStream(store, input.ownerId, input.text);
+      const { ownerId, text, effort, webSearch } = await readBody(request, chatInput);
+      return mainStream(store, ownerId, text, undefined, { effort, webSearch });
     }
     if (route === "chat/note" && method === "POST") {
-      const input = await readBody(request, chatInput);
-      return noteStream(store, input.ownerId, input.text);
+      const { ownerId, text, effort, webSearch } = await readBody(request, chatInput);
+      return noteStream(store, ownerId, text, undefined, { effort, webSearch });
     }
     if (route === "notes" && method === "POST") {
       const { conversationId, parentMessageId, x, y, ...anchor } = await readBody(request, noteInput);

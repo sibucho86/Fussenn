@@ -1,11 +1,27 @@
 import type { ChatProvider, GenerationRequest, GenerationEvent } from "../provider";
 
+function wait(ms: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => { signal?.removeEventListener("abort", stop); resolve(); }, ms);
+    const stop = () => { clearTimeout(timer); reject(new DOMException("Aborted", "AbortError")); };
+    if (signal?.aborted) stop(); else signal?.addEventListener("abort", stop, { once: true });
+  });
+}
 export class MockProvider implements ChatProvider {
   constructor(private delay = 16) {}
   async generate(request: GenerationRequest, emit: (event: GenerationEvent) => void) {
     let text: string;
+    emit({ type: "activity", activity: { kind: "thinking" } });
+    // "[slow]" holds the answer back for a few seconds, so the progress line can be tried and tested.
+    if (request.userText.startsWith("[slow]")) {
+      await wait(1500, request.signal);
+      if (request.webSearch) emit({ type: "activity", activity: { kind: "searching", detail: "Fussenn デモの検索" } });
+      await wait(2500, request.signal);
+    } else if (request.webSearch) emit({ type: "activity", activity: { kind: "searching", detail: "Fussenn デモの検索" } });
     if (request.userText === "[context]") {
       text = JSON.stringify(request.messages);
+    } else if (request.userText === "[options]") {
+      text = JSON.stringify({ effort: request.effort ?? null, webSearch: request.webSearch === true });
     } else if (request.ownerType === "side_note") {
       const reference = request.messages.find((m) => m.content.includes("[SELECTED TEXT]"))?.content ?? "";
       const selected = reference.split("[SELECTED TEXT]\n")[1]?.split("\n[END SELECTED TEXT]")[0] ?? "選択した文章";
