@@ -19,6 +19,10 @@ AIの回答だけでなく、Markdown・テキスト・PDFの資料にも付箋�
 
 ![原稿の編集とMarkdownプレビュー](docs/manuscript-preview.png)
 
+## ダウンロード
+
+Apple Silicon Mac用のDMGとWindows用のインストーラーを、[ダウンロードページ](https://omoshironics.com/fussenn/) と [GitHubのリリース](https://github.com/sibucho86/Fussenn/releases/latest) で配布しています。Mac版はAppleの公証を受けています。Windows版は署名していないため、初めて起動するときに警告が出ます（[起動時の警告](docs/desktop.md#windowsで使う)）。Codexで使う場合は、Codex CLIとChatGPTへのログインが別途必要です。
+
 ## まずローカルで試す
 
 Node.js **22.13以上**とnpmが必要です。開発・Windows/Mac検証の基準はNode.js **24.22.2**です。
@@ -71,7 +75,7 @@ npm run desktop
 | macOS Intel | GitHub ActionsのIntel Macと、Apple Silicon上のRosetta 2で、ビルドと配布版テストを確認。画面を使った実機操作は未実施。署名・公証は、Intel版も配る場合に行う。 |
 | Linux | GitHub Actions（Ubuntu 24.04）で、ブラウザ版テスト、デスクトップ版のビルドと展開したアプリでの配布版テスト、AppImage生成を確認。AppImageからの起動と実機での確認は未実施。 |
 
-GitHubでの一般公開・リリース配布はまだ行っていません。アプリの生成方法と確認範囲は [デスクトップ版](docs/desktop.md)、Macの実機確認と署名の制限は [Macの検証記録](docs/mac-validation.md) を参照してください。生成したデスクトップ版にはNode.jsを同梱します。Codex Providerを使う場合は、Codex CLIとChatGPTログインが別途必要です。
+配布しているのは、Apple Silicon Mac用のDMGとWindows用のインストーラーです（[ダウンロード](#ダウンロード)）。アプリの生成方法と確認範囲は [デスクトップ版](docs/desktop.md)、Macの実機確認と署名の制限は [Macの検証記録](docs/mac-validation.md) を参照してください。生成したデスクトップ版にはNode.jsを同梱します。Codex Providerを使う場合は、Codex CLIとChatGPTログインが別途必要です。
 
 ## 保存とプライバシー
 
