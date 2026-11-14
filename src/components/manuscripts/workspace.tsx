@@ -126,6 +126,10 @@ export function ManuscriptWorkspace({ detail, canvasRef, showConnectors, onShowC
       return await work();
     } finally { busyRef.current = false; setBusy(false); }
   }
+  const previewClosed = useRef<((applied: boolean) => void) | null>(null);
+  function closePreview(applied: boolean) {
+    setPreview(null); previewClosed.current?.(applied); previewClosed.current = null;
+  }
   async function openPreview(noteId: string) {
     await operation(async () => {
       const row = await api<ConversationDetail>(`conversations/${id}`);
@@ -134,6 +138,9 @@ export function ManuscriptWorkspace({ detail, canvasRef, showConnectors, onShowC
       if (!note.manuscript || note.manuscript.from === null || note.manuscript.appliedRevision !== null) throw new Error("対象の文章を選び直して、新しい付箋を作ってください。");
       setPreview({ note, revision: saved.current.revision, content: saved.current.content });
     });
+    // Waiting for the dialog happens outside the operation, which the apply in the dialog needs as well.
+    // The dialog can only be closed after this has run: user input waits for the pending promise work.
+    return new Promise<boolean>((resolve) => { previewClosed.current = resolve; });
   }
   async function refresh(noteId: string) {
     await operation(async () => {
@@ -192,9 +199,9 @@ export function ManuscriptWorkspace({ detail, canvasRef, showConnectors, onShowC
         <p className="manuscript-caption">{viewMode === "edit" ? "Markdownで編集できます。新しい付箋AIは、保存した最新版の原稿全文と選択箇所を参照します。" : "プレビューの段落をダブルクリックすると、その箇所を編集できます。付箋は編集画面で文章を選んで作成します。"}</p>
       </article>
     </NoteCanvas>
-    {preview && <ApplyDialog preview={preview} onClose={() => setPreview(null)} onApply={async (mode) => {
+    {preview && <ApplyDialog preview={preview} onClose={() => closePreview(false)} onApply={async (mode) => {
       const row = await operation(() => api<ConversationDetail>(`manuscripts/notes/${preview.note.id}/apply`, { method: "POST", body: JSON.stringify({ expected: preview.revision, expectedDraft: preview.note.manuscript!.draftRevision, mode }) }));
-      accept(row, true); setPreview(null); setState("保存済み");
+      accept(row, true); closePreview(true); setState("保存済み");
     }} />}
     {historyOpen && <ManuscriptDialog title="原稿の履歴" onClose={() => setHistoryOpen(false)}>
       <form className="manuscript-checkpoint" onSubmit={(e) => { e.preventDefault(); void (async () => { if (await save(label.trim())) { setLabel(""); setVersions(await api(`manuscripts/${id}/history`)); } })().catch((e) => onError(e.message)); }}><input aria-label="版の名前" placeholder="初稿、編集者提出前など" maxLength={100} value={label} onChange={(e) => setLabel(e.target.value)} /><button className="secondary-button" disabled={!label.trim() || busy}>名前を付けて保存</button></form>

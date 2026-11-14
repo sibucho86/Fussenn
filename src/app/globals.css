@@ -43,11 +43,16 @@ button { transition: background .15s, color .15s, box-shadow .15s; }
 .document-metadata > span:first-child { color: light-dark(#738565, #7a8c6c); overflow-wrap: anywhere; }
 .document-context { margin: 21px 0 30px; padding: 10px 13px; border-left: 2px solid light-dark(#cfdaba, #303624); background: light-dark(#f0f3e9, #1c1d18); font-size: calc(11px * var(--text-scale)); color: light-dark(#7a886c, #78866a); }
 .document-plain { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; font-size: calc(14px * var(--text-scale)); }
-.document-dock { display: flex; justify-content: space-between; align-items: center; gap: 20px; border-top: 1px solid var(--line); padding: 17px 34px; background: var(--paper); }
-.document-dock > div { display: flex; align-items: center; gap: 12px; color: light-dark(#81906f, #717f5f); font-size: calc(11px * var(--text-scale)); line-height: 1.8; }
-.document-dock svg { flex-shrink: 0; }
-.document-dock small { display: block; color: light-dark(#9aA28f, #606756); font-size: calc(10px * var(--text-scale)); }
-.document-dock > button { flex-shrink: 0; white-space: nowrap; }
+.document-ai-bar { container: document-ai / inline-size; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; min-height: 46px; padding: 7px 34px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.document-ai-model { display: flex; align-items: center; gap: 7px; min-width: 0; color: light-dark(#64705a, #939e87); font-size: calc(10px * var(--text-scale)); }
+.document-ai-model svg { flex-shrink: 0; color: var(--accent); }
+.document-ai-model strong { min-width: 0; max-width: 26em; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: light-dark(#3f4a36, #d3dbc8); font-size: calc(11px * var(--text-scale)); font-weight: 600; }
+.document-ai-model strong small { margin-left: 8px; color: light-dark(#64705a, #939e87); font-size: calc(10px * var(--text-scale)); font-weight: 400; }
+.document-ai-settings { display: flex; align-items: center; gap: 5px; flex-shrink: 0; border: 1px solid light-dark(#dfe4d6, #33372d); border-radius: 6px; padding: 5px 9px; color: light-dark(#4b5a40, #b9c4ad); font-size: calc(10px * var(--text-scale)); white-space: nowrap; }
+.document-ai-settings:hover { border-color: light-dark(#b9c6a8, #4a5440); }
+/* The hint takes what is left of the first line and is cut short rather than adding a line; a narrow bar leaves it out. */
+.document-ai-hint { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: right; color: light-dark(#64705a, #939e87); font-size: calc(10px * var(--text-scale)); }
+@container document-ai (max-width: 1000px) { .document-ai-hint { display: none; } }
 .new-chat:hover { background: light-dark(white, #202020); border-color: light-dark(#bbc6b6, #3d4739); }
 .new-chat > span { margin-left: auto; color: light-dark(#9aa391, #5f6756); }
 .sidebar-section-label { display: flex; align-items: center; justify-content: space-between; font-size: calc(8px * var(--text-scale)); letter-spacing: 1.2px; color: light-dark(#969d8e, #656b5d); padding: 0 5px 12px 10px; }
@@ -366,6 +371,15 @@ textarea::placeholder, input::placeholder { color: light-dark(#b0b3a5, #525448);
 .note-chat-message .markdown h2, .note-chat-message .markdown h3 { font-size: calc(12px * var(--text-scale)); }
 .note-chat-message .markdown blockquote { font-size: calc(10px * var(--text-scale)); border-color: var(--note-border); color: var(--note-label); padding-left: 10px; }
 .note-chat-message .markdown pre { background: var(--note-tint); border-color: var(--note-border); padding: 8px; }
+/* A short option and its buttons share a line; a long one takes the whole line and the buttons go below it. */
+.note-chat-message .replacement-option { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin: 6px 0; border: 1px solid var(--note-border); border-left: 3px solid var(--note-accent); border-radius: 5px; background: var(--note-input); padding: 6px 8px; }
+.note-chat-message .replacement-option .replacement-text { flex: 1 1 auto; min-width: 0; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--note-ink); font-size: calc(12px * var(--text-scale)); font-weight: 600; line-height: 1.6; }
+.replacement-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-left: auto; }
+.replacement-actions button { border: 1px solid var(--note-border); border-radius: 4px; padding: 4px 8px; color: var(--note-ink); font-size: calc(10px * var(--text-scale)); }
+.replacement-actions button.note-ask { background: var(--note-control); }
+.replacement-actions button:disabled { opacity: .55; cursor: default; }
+.replacement-actions button:hover:not(:disabled) { border-color: var(--note-accent); }
+.replacement-actions button.note-ask:hover:not(:disabled) { background: var(--note-control-hover); }
 .note-chat-message .markdown code { background: var(--note-tint); }
 .note-chat-message .markdown a, .note-chat-message .markdown li::marker { color: var(--note-label); }
 .note-chat-message .markdown th, .note-chat-message .markdown td { border-color: var(--note-border); }

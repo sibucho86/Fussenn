@@ -11,6 +11,8 @@ import { workspaceRevision } from "@/server/workspace-revision";
 import { noteStream } from "@/server/services/generation";
 import { MockProvider } from "@/server/providers/mock";
 import { manuscriptEdits, moveAttachment } from "@/lib/manuscript";
+import { MANUSCRIPT_NOTE_INSTRUCTIONS, surroundingsReference } from "@/lib/context/side-note";
+import type { GenerationRequest } from "@/server/providers/provider";
 
 let db: ReturnType<typeof openDatabase>, store: Store, service: Manuscripts, dir: string;
 beforeEach(() => { db = openDatabase(":memory:"); store = new Store(db.db); store.updateSettings({ defaultProvider: "openai", openaiModel: "test-model" }); service = new Manuscripts(store); dir = mkdtempSync(join(tmpdir(), "fussenn-manuscript-test-")); });
@@ -75,6 +77,26 @@ it("new notes receive the revised full text; existing notes keep their context u
   expect(refreshed.providerSessionId).toBeNull();
   const answer = await noteStream(store, old.id, "[context]", new MockProvider(0)).text();
   expect(answer).toContain("新しい導入"); expect(answer).not.toContain("OLD_PRIVATE_QUESTION");
+});
+
+it("asks the note AI for replacement options and shows it the current text around the target", async () => {
+  const row = seed(), note = addNote(row.id);
+  const reference = async () => {
+    await noteStream(store, note.id, "[context]", new MockProvider(0)).text();
+    const messages = JSON.parse(store.note(note.id).messages.at(-1)!.content) as { role: string; content: string }[];
+    expect(messages[0]).toEqual({ role: "system", content: MANUSCRIPT_NOTE_INSTRUCTIONS });
+    return messages[1].content;
+  };
+  expect(await reference()).toContain("[MANUSCRIPT TEXT RIGHT BEFORE THE SELECTION]\n冒頭。\n[END MANUSCRIPT TEXT RIGHT BEFORE THE SELECTION]\n[MANUSCRIPT TEXT RIGHT AFTER THE SELECTION]\n末尾。\n");
+  // The snapshot stays at its version until a refresh, but a suggestion replaces the target where it is now.
+  service.save(row.id, "新しい冒頭。" + row.messages[0].content, 2);
+  expect(await reference()).toContain("[MANUSCRIPT TEXT RIGHT BEFORE THE SELECTION]\n新しい冒頭。冒頭。\n[END MANUSCRIPT TEXT RIGHT BEFORE THE SELECTION]");
+  const answer = await noteStream(store, note.id, "違う言葉に置き換えたい", new MockProvider(0)).text();
+  expect(answer).toContain("```replacement\\n猫は眠る。（言い換え案1）\\n```");
+  // A provider that continues its own session receives the current text again with each question.
+  const seen: GenerationRequest[] = [];
+  await noteStream(store, note.id, "もう一案", { async generate(request: GenerationRequest) { seen.push(request); return { text: "ok" }; } }).text();
+  expect(seen[0].resumeContext).toBe(surroundingsReference({ before: "新しい冒頭。冒頭。", after: "末尾。" }));
 });
 
 it("applies a candidate exactly once, saves surrounding anchors and restores a previous version without deleting discussion", () => {

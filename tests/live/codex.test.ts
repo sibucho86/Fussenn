@@ -8,6 +8,8 @@ import { mainStream, noteStream } from "@/server/services/generation";
 import { CodexAppServerClient } from "@/server/providers/codex/client";
 import { CodexProvider } from "@/server/providers/codex";
 import { buildMainContext } from "@/lib/context/main";
+import { Manuscripts } from "@/server/services/manuscripts";
+import { replacementOptions } from "@/lib/replacements";
 
 // Opt-in only: npm run test:codex uses the signed-in account's Codex allowance.
 it("uses real Codex auth, isolated threads, streaming, persistence and resume", async () => {
@@ -68,5 +70,30 @@ it("uses the chosen effort and web search with real Codex, reporting search prog
     const plain = await mainStream(store, conversation.id, "今の答えを一文で言い直してください。", provider, { effort, webSearch: false }).text();
     expect(plain).toContain('"type":"completed"');
     expect(store.conversation(conversation.id).providerSessionId).toMatch(/^fussenn2:/);
+  } finally { client.dispose(); database.sqlite.close(); }
+});
+it("answers a request for other words in a manuscript note with replacement options", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "fussenn-live-"));
+  const client = new CodexAppServerClient();
+  const database = openDatabase(join(directory, "fussenn.db"));
+  const store = new Store(database.db);
+  try {
+    expect((await client.status()).signedIn, "Codex CLI must be signed in with ChatGPT").toBe(true);
+    const models = await client.models();
+    const model = models.find((m) => m.isDefault) ?? models[0];
+    store.updateSettings({ defaultProvider: "codex", codexDefaultModel: model.model });
+    const manuscripts = new Manuscripts(store);
+    const row = manuscripts.create("手を動かして考える");
+    manuscripts.save(row.id, "ものづくりは、手を動かして考える仕事だ。図面を引き、試作して、また直す。", 1);
+    const note = manuscripts.createNote(row.id, 2, 0, 5, 520, 100);
+    expect(note.selectedText).toBe("ものづくり");
+    const output = await noteStream(store, note.id, "違う言葉に置き換えたい", new CodexProvider(client), { effort: model.efforts.includes("low") ? "low" : null }).text();
+    expect(output).toContain('"type":"completed"');
+    const answer = store.noteMessages(note.id).at(-1)!.content;
+    const options = replacementOptions(answer);
+    console.log(`replacement options from ${model.model}: ${JSON.stringify(options)}`);
+    expect(options.length, answer).toBeGreaterThanOrEqual(2);
+    // Each option is only the words that take the place of the selection.
+    for (const option of options) { expect(option, answer).not.toMatch(/[「」『』"]|^\d+[.．)]|\n/); expect(option.length, answer).toBeLessThan(30); }
   } finally { client.dispose(); database.sqlite.close(); }
 });

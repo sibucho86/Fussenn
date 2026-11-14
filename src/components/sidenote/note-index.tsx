@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, LoaderCircle, MessageSquare, Search, StickyNote, X } from "lucide-react";
 import type { SideNote } from "@/lib/types";
 import { NOTE_COLOR_LABELS } from "@/lib/note-colors";
+import { replacementsAsText } from "@/lib/replacements";
 
 const compact = (value: string) => value.replace(/\s+/g, " ").trim();
 const searchable = (value: string) => compact(value).normalize("NFKC").toLocaleLowerCase("ja-JP");
@@ -55,7 +56,8 @@ export function NoteIndex({ notes, title, isDocument = false, onClose, onReveal 
       <div className="note-index-scroll">
         {rows.length ? <ul className="note-index-list">{rows.map((note) => {
           const latest = note.messages.findLast((m) => m.role === "assistant") ?? note.messages.at(-1);
-          const preview = compact(note.mode === "chat" ? latest?.content || note.memo : note.memo);
+          const answer = latest?.content && note.manuscript ? replacementsAsText(latest.content) : latest?.content;
+          const preview = compact(note.mode === "chat" ? answer || note.memo : note.memo);
           const status = note.layout.minimized ? "マーカーに収納" : note.layout.collapsed ? "折りたたみ中" : "表示中";
           return <li key={note.id}><button className="note-index-item note-theme" data-testid="note-index-item" data-note-id={note.id} data-note-color={note.color} aria-label={`「${note.selectedText}」の付箋へ移動`} disabled={opening !== null} onClick={() => void reveal(note.id)}>
             <span className="note-index-item-meta"><span><span className="note-index-color" aria-label={NOTE_COLOR_LABELS[note.color]} />{note.mode === "chat" ? <MessageSquare size={12} /> : <StickyNote size={12} />}{note.mode === "chat" ? "AIとの会話" : "メモ"}</span><span className={`note-index-state ${note.layout.minimized ? "is-stored" : ""}`}>{status}</span></span>

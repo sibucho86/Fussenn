@@ -8,6 +8,11 @@ export type GenerationRequest = {
   effort?: string | null;
   /** Allow the provider's own web search tool for this question. */
   webSearch?: boolean;
+  /**
+   * Reference data that may have changed since a provider-side session began. A provider that continues such a
+   * session sends only the new question, so it sends this with it; `messages` already holds the current data.
+   */
+  resumeContext?: string;
 };
 export type GenerationEvent = { type: "text_delta"; text: string } | { type: "activity"; activity: ChatActivity };
 export type GenerationResult = { text: string; providerSessionId?: string | null };

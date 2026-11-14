@@ -243,3 +243,78 @@ test("continues revising the same applied note with the latest AI reference and 
   const history = await (await request.get(`/api/manuscripts/${manuscript.id}/history`)).json();
   expect(history.filter((v: { kind: string }) => v.kind === "apply")).toHaveLength(3);
 });
+
+test("offers replacement options in a note and applies the chosen one, with the note AI settings at the top", async ({ page, request }) => {
+  await request.patch("/api/settings", { data: { defaultProvider: "mock" } });
+  const manuscript = await create(page, "置き換え案を選ぶ");
+  await write(page, "ものづくりは、手を動かして考える仕事だ。");
+  const bar = page.getByRole("group", { name: "付箋AI", exact: true });
+  await expect(bar).toContainText("Mock · デモ · mock-demo");
+  await expect(bar.getByRole("combobox", { name: "考える深さ", exact: true })).toBeVisible();
+  await expect(bar.getByRole("button", { name: /^Web検索/ })).toBeVisible();
+  await expect(bar.getByRole("button", { name: "付箋AIの設定", exact: true })).toBeVisible();
+  const barBox = await bar.boundingBox(), editorBox = await body(page).boundingBox();
+  expect(barBox!.y).toBeLessThan(editorBox!.y);
+  const created = await noteOnFirstWord(page, manuscript.id);
+  const sticky = page.locator(`section[data-note-id="${created.id}"]`);
+  await sticky.getByLabel("付箋のメモ", { exact: true }).fill("違う言葉に置き換えたい");
+  await sticky.getByRole("button", { name: "AIに聞く", exact: true }).click();
+  const options = sticky.getByTestId("replacement-option");
+  await expect(options).toHaveCount(3);
+  await expect(options.locator(".replacement-text")).toHaveText(["手しごと", "創作", "製作"]);
+  await expect(sticky.getByTestId("note-message-assistant")).toContainText("迷ったら、最初の案がおすすめです。");
+  // An answer with options does not offer its whole text, explanation included, as a draft.
+  await expect(sticky.getByRole("button", { name: "原稿案に使う", exact: true })).toHaveCount(0);
+  // A draft written by hand comes back when a chosen option is not applied.
+  await sticky.getByRole("button", { name: "原稿案", exact: true }).click();
+  await sticky.getByLabel("本文に反映する原稿案").fill("自分で考えた言葉");
+  await sticky.getByRole("button", { name: "相談・メモ", exact: true }).click();
+  await sticky.getByRole("button", { name: "「製作」に置き換える", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "本文への反映を確認", exact: true });
+  await expect(dialog.locator("ins")).toHaveText("製作");
+  await dialog.getByRole("button", { name: "編集に戻る", exact: true }).click();
+  await sticky.getByRole("button", { name: "原稿案", exact: true }).click();
+  await expect(sticky.getByLabel("本文に反映する原稿案")).toHaveValue("自分で考えた言葉");
+  await sticky.getByRole("button", { name: "相談・メモ", exact: true }).click();
+  await sticky.getByRole("button", { name: "「創作」に置き換える", exact: true }).click();
+  await expect(dialog.locator("del")).toHaveText("ものづくり");
+  await expect(dialog.locator("ins")).toHaveText("創作");
+  await dialog.getByRole("button", { name: "本文に反映する", exact: true }).click();
+  await expect(body(page)).toContainText("創作は、手を動かして考える仕事だ。");
+  await expect(sticky.getByRole("button", { name: /に置き換える$/ })).toHaveCount(0);
+  // Another option after continuing; this one goes to the draft to be edited first.
+  await sticky.getByRole("button", { name: "続けて推敲する", exact: true }).click();
+  await sticky.getByRole("button", { name: "「手しごと」を原稿案で直す", exact: true }).click();
+  await expect(sticky.getByLabel("本文に反映する原稿案")).toHaveValue("手しごと");
+  await sticky.getByLabel("本文に反映する原稿案").fill("手しごとの仕事");
+  await sticky.getByRole("button", { name: "本文へ反映…", exact: true }).click();
+  await dialog.getByRole("button", { name: "本文に反映する", exact: true }).click();
+  await expect(body(page)).toContainText("手しごとの仕事は、手を動かして考える仕事だ。");
+});
+
+test("a new note is larger in proportion at a larger text size, so its controls stay usable", async ({ page, request }) => {
+  await page.addInitScript(() => localStorage.setItem("fussenn:text-size", "largest"));
+  await request.patch("/api/settings", { data: { defaultProvider: "mock" } });
+  const manuscript = await create(page, "大きな文字の付箋");
+  await write(page, "ものづくりは、手を動かして考える仕事だ。");
+  const created = await noteOnFirstWord(page, manuscript.id);
+  const sticky = page.locator(`section[data-note-id="${created.id}"]`);
+  const box = (await sticky.locator("..").boundingBox())!;
+  expect([Math.round(box.width), Math.round(box.height)]).toEqual([480, 330]);
+  await expect.poll(async () => ((await (await request.get(`/api/conversations/${manuscript.id}`)).json()) as ConversationDetail).notes[0].layout).toMatchObject({ width: 480, height: 330 });
+  // The memo's footer sits clear of the note's own footer, so its button takes the click.
+  await sticky.getByLabel("付箋のメモ", { exact: true }).fill("違う言葉に置き換えたい");
+  await sticky.getByRole("button", { name: "AIに聞く", exact: true }).click({ timeout: 5_000 });
+  await expect(sticky.getByTestId("replacement-option")).toHaveCount(3);
+});
+
+async function noteOnFirstWord(page: Page, id: string) {
+  await body(page).click(); await page.keyboard.press("ControlOrMeta+Home");
+  for (let i = 0; i < 5; i++) await page.keyboard.press("Shift+ArrowRight");
+  await page.getByRole("button", { name: "選択箇所・カーソルに付箋" }).click();
+  const response = page.waitForResponse((r) => r.url().endsWith(`/api/manuscripts/${id}/notes`));
+  await page.getByRole("button", { name: "付箋", exact: true }).click();
+  const created: SideNote = await (await response).json();
+  expect(created.selectedText).toBe("ものづくり");
+  return created;
+}

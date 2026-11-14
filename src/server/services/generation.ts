@@ -1,7 +1,7 @@
 import type { ChatOptions, Message, ProviderKind, StreamEvent } from "@/lib/types";
 import { supportsChatOptions } from "@/lib/chat-options";
 import { buildMainContext } from "@/lib/context/main";
-import { buildSideNoteContext } from "@/lib/context/side-note";
+import { buildSideNoteContext, selectionSurroundings, surroundingsReference } from "@/lib/context/side-note";
 import { AppError, safeError } from "@/server/errors";
 import { resolveProvider } from "@/server/providers";
 import type { ChatProvider, GenerationRequest } from "@/server/providers/provider";
@@ -33,11 +33,14 @@ export function noteStream(store: Store, id: string, text: string, injectedProvi
   const conversation = store.conversation(note.conversationId);
   if (conversation.document && !conversation.model.trim()) throw new AppError("資料の「付箋AIの設定」からモデルを選んでください。", 409);
   const provider = injectedProvider ?? resolveProvider(conversation.providerKind, store.settings());
+  // A manuscript suggestion replaces the note's current target, so the AI also sees the text around it now.
+  const edit = note.manuscript, source = edit && conversation.document ? store.mainMessages(conversation.id).find((m) => m.id === conversation.document!.messageId) : undefined;
+  const surroundings = edit && source && edit.from !== null && edit.to !== null && edit.to <= source.content.length ? selectionSurroundings(source.content, edit.from, edit.to) : undefined;
   return generationStream(`side_note:${id}`, provider, () => {
     const pair = store.beginNote(id, text);
     return {
       ...pair,
-      request: { ownerType: "side_note", ownerId: id, model: conversation.model, messages: buildSideNoteContext(note.contextSnapshot, pair.history.filter((m) => m.sequence > (note.manuscript?.historyFrom ?? 0)), text), userText: text, providerSessionId: note.providerSessionId, ...chatOptions(conversation.providerKind, options) },
+      request: { ownerType: "side_note", ownerId: id, model: conversation.model, messages: buildSideNoteContext(note.contextSnapshot, pair.history.filter((m) => m.sequence > (note.manuscript?.historyFrom ?? 0)), text, surroundings), userText: text, providerSessionId: note.providerSessionId, ...(surroundings ? { resumeContext: surroundingsReference(surroundings) } : {}), ...chatOptions(conversation.providerKind, options) },
       save: (content, status, session) => store.finishNote(id, pair.assistantMessage.id, content, status, session),
     };
   });

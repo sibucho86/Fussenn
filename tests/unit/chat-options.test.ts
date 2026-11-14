@@ -66,6 +66,8 @@ describe("chat options in a generation", () => {
       const note = store.createNote(conversation.id, parent.id, { selectedText: "ok", anchorStart: 0, anchorEnd: 2, anchorPrefix: "", anchorSuffix: "", anchorVersion: 1 }, { x: 10, y: 10 });
       await noteStream(store, note.id, "付箋", provider, { effort: "low", webSearch: true }).text();
       expect(seen[1]).toMatchObject({ effort: null, webSearch: false });
+      // Only manuscript notes send the text around their target again.
+      expect(seen[1].resumeContext).toBeUndefined();
     } finally { database.sqlite.close(); }
   });
 });

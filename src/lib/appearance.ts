@@ -13,6 +13,8 @@ export const TEXT_SIZES = [
   { value: "largest", label: "最大", scale: 1.5 },
 ] as const;
 export type TextSize = (typeof TEXT_SIZES)[number]["value"];
+/** How much larger than standard the text is; sizes set in pixels, such as a note's, grow with it. */
+export function textScale(size: TextSize) { return TEXT_SIZES.find((option) => option.value === size)?.scale ?? 1; }
 export type Appearance = { theme: Theme; textSize: TextSize };
 export const THEME_KEY = "fussenn:theme", TEXT_SIZE_KEY = "fussenn:text-size";
 export const DEFAULT_APPEARANCE: Appearance = { theme: "system", textSize: "standard" };
