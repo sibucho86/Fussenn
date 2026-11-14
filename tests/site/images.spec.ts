@@ -165,12 +165,19 @@ test("draws the sharing image", async ({ page }) => {
   const icon = readFileSync("public/brand/fussenn.svg", "utf8");
   await page.setViewportSize({ width: 1200, height: 630 });
   await page.setContent(`<!doctype html><html lang="ja"><meta charset="utf-8"><style>
-    body { margin: 0; width: 1200px; height: 630px; background: #3f5145; color: #faf9f6; font-family: "Hiragino Sans", "Yu Gothic UI", sans-serif; display: grid; grid-template-columns: 300px 1fr; align-items: center; gap: 64px; padding: 0 96px; box-sizing: border-box; }
-    svg { width: 300px; height: 300px; }
+    body { margin: 0; width: 1200px; height: 630px; background: #3f5145; color: #faf9f6; font-family: "Hiragino Sans", "Yu Gothic UI", sans-serif; display: grid; grid-template-columns: 270px 1fr; align-items: center; gap: 56px; padding: 0 92px; box-sizing: border-box; }
+    svg { width: 270px; height: 270px; }
     .name { font-size: 40px; font-weight: 600; letter-spacing: .02em; margin: 0 0 18px; }
-    h1 { font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-weight: 600; font-size: 84px; line-height: 1.2; margin: 0 0 30px; letter-spacing: .02em; }
-    p { font-size: 28px; line-height: 1.6; margin: 0; color: #e4e8df; }
-  </style><body>${icon}<div><p class="name">Fussenn</p><h1>理解を、余白に。</h1><p>文章に付箋を貼り、付箋の中でAIに質問できるアプリです。<br>MacとWindowsで、無料で使えます。</p></div></body></html>`);
+    h1 { font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-weight: 600; font-size: 82px; line-height: 1.2; margin: 0 0 30px; letter-spacing: .02em; white-space: nowrap; }
+    p { font-size: 30px; line-height: 1.6; margin: 0; color: #e4e8df; }
+  </style><body>${icon}<div><p class="name">Fussenn</p><h1>理解を、余白に。</h1><p id="about">文章に付箋を貼り、<br>付箋の中でAIに質問できるアプリです。<br>MacとWindowsで、無料で使えます。</p></div></body></html>`);
+  // The lines break only where they are written to: the tagline on one line, the description on three.
+  const fits = await page.evaluate(() => {
+    const lines = (el: Element) => { const range = document.createRange(); range.selectNodeContents(el); return new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size; };
+    const h1 = document.querySelector("h1")!;
+    return { tagline: lines(h1), about: lines(document.querySelector("#about")!), inside: h1.getBoundingClientRect().right <= 1200 - 60 };
+  });
+  expect(fits).toEqual({ tagline: 1, about: 3, inside: true });
   const png = await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } });
   await sharp(png).resize({ width: 1200 }).png({ compressionLevel: 9, palette: true, quality: 90 }).toFile("site/og.png");
 });
