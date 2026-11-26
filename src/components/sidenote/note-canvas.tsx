@@ -10,6 +10,8 @@ import { FloatingNote } from "./floating-note";
 import { EditableConnector } from "./editable-connector";
 import { ConnectorLayer } from "./connector-layer";
 import { applyStreamEvent } from "@/hooks/use-chat-stream";
+import { textScale } from "@/lib/appearance";
+import { useAppearance } from "@/lib/appearance-store";
 
 type Geometry = { anchors: Record<string, Rect[]>; textRects: Rect[]; bounds: Rect };
 type ConnectorPlacement = { id: string; rect: Rect; adjustment: ConnectorAdjustment | null };
@@ -18,7 +20,8 @@ export type ManuscriptCanvasBridge = {
   selection: () => { from: number; to: number; rect: DOMRect } | null;
   rects: (id: string) => DOMRect[]; geometry: number; revision: number;
   create: (from: number, to: number, text: string, x: number, y: number) => Promise<SideNote>;
-  preview: (id: string) => Promise<void>; refresh: (id: string) => Promise<void>; revise: (id: string) => Promise<void>; reveal: (id: string) => void;
+  /** Opens the confirmation; settles when it closes, true when the draft was applied. */
+  preview: (id: string) => Promise<boolean>; refresh: (id: string) => Promise<void>; revise: (id: string) => Promise<void>; reveal: (id: string) => void;
 };
 export type NoteCanvasHandle = { revealNote: (id: string) => Promise<boolean>; closeConnectorEditor: () => void; selectCursor: () => void };
 export function NoteCanvas({ ref, detail, showConnectors, onShowConnectors, onNotes, onError, children, manuscript }: {
@@ -34,6 +37,7 @@ export function NoteCanvas({ ref, detail, showConnectors, onShowConnectors, onNo
   const { anchors } = geometry;
   const [editingConnector, setEditingConnector] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const appearance = useAppearance();
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
   const [pending, setPending] = useState<Set<string>>(new Set());
   const pendingRef = useRef(new Set<string>());
@@ -141,8 +145,14 @@ export function NoteCanvas({ ref, detail, showConnectors, onShowConnectors, onNo
       const anchor = { parentMessageId, selectedText, anchorStart, anchorEnd, anchorPrefix, anchorSuffix, anchorVersion };
       const note = manuscript ? await manuscript.create(anchorStart, anchorEnd, selectedText, Math.round(noteX), Math.round(noteY)) : await api<SideNote>("notes", { method: "POST", body: JSON.stringify({ ...anchor, conversationId: detail.id, x: Math.round(noteX), y: Math.round(noteY) }) });
       note.layout.zIndex = Math.max(100, ...(notes ?? []).map((n) => n.layout.zIndex)) + 1;
+      // With larger text, a new note starts larger in proportion, so its controls fit. Like a standard note,
+      // it stays clear of the canvas's right edge, growing no wider than the canvas leaves room for.
+      const scale = textScale(appearance.textSize), canvasWidth = canvasRef.current?.clientWidth ?? Infinity;
+      const width = Math.max(note.layout.width, Math.min(Math.round(note.layout.width * scale), canvasWidth - 24));
+      const size = scale > 1 ? { width, height: Math.round(note.layout.height * scale), x: Math.max(8, Math.min(note.layout.x, canvasWidth - width - 16)) } : {};
+      Object.assign(note.layout, size);
       onNotes((rows) => [...rows, note]); setActive(note.id); setSelection(null); window.getSelection()?.removeAllRanges();
-      void api(`notes/${note.id}/layout`, { method: "PATCH", body: JSON.stringify({ zIndex: note.layout.zIndex }) }).catch(() => {});
+      void api(`notes/${note.id}/layout`, { method: "PATCH", body: JSON.stringify({ zIndex: note.layout.zIndex, ...size }) }).catch(() => {});
     } catch (e) { onError(e instanceof Error ? e.message : "付箋を作成できませんでした。"); }
     finally { setCreating(false); }
   }

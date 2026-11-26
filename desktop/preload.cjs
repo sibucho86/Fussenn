@@ -10,6 +10,7 @@ ipcRenderer.on("fussenn:save", async (_event, id) => {
 });
 contextBridge.exposeInMainWorld("fussennDesktop", {
   openLogin: (url) => ipcRenderer.invoke("fussenn:login", url),
+  setTheme: (theme) => ipcRenderer.invoke("fussenn:theme", theme),
   onBeforeClose: (save) => {
     beforeClose.add(save);
     return () => { beforeClose.delete(save); };

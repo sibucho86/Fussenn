@@ -2,7 +2,7 @@
 
 ## 対象と前提
 
-現在の保守対象は最新の0.2系です。修正は最新版へ適用します。Fussennは個人のPC上で利用する設計で、サーバーのインターネット公開や複数ユーザーの共有利用には対応していません。
+現在の保守対象は最新の0.3系です。修正は最新版へ適用します。Fussennは個人のPC上で利用する設計で、サーバーのインターネット公開や複数ユーザーの共有利用には対応していません。
 
 会話・資料・原稿はローカルのSQLiteへ保存します。DBとバックアップは暗号化していません。AIへ質問すると、その回答に必要な本文や会話が選択したProviderへ送られます。認証・保存先については [使い方](docs/usage.md) を参照してください。
 
@@ -10,7 +10,7 @@
 
 公開リポジトリの **Security → Report a vulnerability** から非公開で報告してください。影響するバージョン・OS・再現手順・想定する影響を記載し、架空のデータによる最小の再現例を添えてください。
 
-現在は公開準備中で、この窓口はまだありません。公開時にGitHubの [private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository) を有効化します。ボタンが表示されない場合は、Issueで「非公開の報告窓口を案内してほしい」とだけ伝え、詳細を掲載しないでください。受付・修正期限の保証はありません。
+この窓口には、GitHubの [private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository) を使っています。ボタンが表示されない場合は、Issueで「非公開の報告窓口を案内してほしい」とだけ伝え、詳細を掲載しないでください。受付・修正期限の保証はありません。
 
 APIキー、OAuthトークン、認証用URL、会話DB、原稿、バックアップ、未編集の実利用ログを公開IssueやPRへ添付しないでください。一般的な不具合は、個人情報を除いた再現例を使って通常のIssueへ報告できます。
 

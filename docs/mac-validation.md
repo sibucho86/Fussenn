@@ -1,22 +1,25 @@
 # Macの検証記録
 
-2026-09-22〜23の検証結果と成果物は、旧名称SideNote AIのときの記録です。2026-11-08の署名の確認と、再現手順は、現行のFussennのものです。
+2026-09-22〜23の検証結果と成果物は、旧名称SideNote AIのときの記録です。2026-11-08〜11の署名と公証の確認と、再現手順は、現行のFussennのものです。
 
 2026-09-22〜23、Apple Silicon（arm64）・macOS 26.6.2で、ブラウザ版とMacデスクトップ版を検証しました。Mac用DMG・ZIPを生成し、展開したアプリの自動テストとネイティブ画面の操作を確認しました。正式な署名・公証は未設定で、一般配布の準備完了とは扱いません。
 
-## 2026-11-08 Developer ID署名の確認
+## 2026-11-08〜11 Developer ID署名と公証の確認
 
-Apple Silicon（arm64）・macOS 26.6.2・Node.js 24.22.2・Electron 44.10.2で、Developer ID Application証明書による署名を確認しました。証明書の名前とチームIDは記録しません。公証は行っていません。
+Apple Silicon（arm64）・macOS 26.6.2・Node.js 24.22.2・Electron 44.10.2で、Developer ID Application証明書による署名と、Appleの公証を確認しました。証明書の名前、チームID、APIキーのIDと提出のIDは記録しません。ビルドしたMacのフォルダのパスが配布物に残る問題を直した後、配布物を作り直し、表の確認をやり直しました。表の結果は、特に記載がなければ、2026-11-11にアプリとDMGを公証して作り直した配布物のものです。
 
 | 確認 | 結果 |
 | --- | --- |
-| 署名つきビルド | `FUSSENN_MAC_SIGN=1` でpack・distが成功。DMGとZIPを生成 |
+| 署名つきビルド | `FUSSENN_MAC_SIGN=1` でpack・distが成功。`FUSSENN_MAC_NOTARIZE=1` も指定したdistでは、アプリの署名・公証・公証チケットの添付の後にDMGとZIPを生成し、DMGにも署名・公証・公証チケットの添付をした。2026-11-11は全体で約6分 |
 | アプリの署名 | 厳密な署名検証（`codesign --verify --deep --strict`）に合格。Developer IDの署名・タイムスタンプ・Hardened Runtimeあり。権限はJITだけ。Electronのヘルパー4つも同じ権限 |
 | アプリ内のコード | Electronのヘルパー・フレームワーク、同梱のNode.js、SQLiteのネイティブモジュール2件を含むMach-O 17件すべてが、アプリと同じチームの署名・タイムスタンプ・Hardened Runtimeつき。権限はJITだけか、なし |
-| 配布物 | DMGのチェックサム検証に成功。DMGとZIPから取り出したアプリも、厳密な署名検証とビルド時と同じ検査に合格。ビルドしたアプリと、DMG・ZIPから取り出したアプリの3,069項目（フォルダを含む）は、内容・権限・シンボリックリンクが一致 |
-| 配布版テスト | 署名したアプリで12件成功。DMGから取り出し、日本語・空白を含むパスに置いたアプリでも12件成功 |
-| Gatekeeper | 「公証されていないDeveloper ID」として拒否。公証の後に再確認する |
-| 検査の確認 | 未署名のアプリを拒否。同梱のNode.jsにデバッグ用の権限（get-task-allow）を足して封印し直したアプリも拒否。後者は `codesign --verify --deep --strict` には合格する |
+| 公証 | App Store Connect APIのチームキー（アクセス権はDeveloper）を、notarytoolのキーチェーンプロファイルに登録し、`APPLE_KEYCHAIN_PROFILE` で指定。チームとして最初の提出（アプリのZIP、2026-11-08）は、アップロードが提出から15秒で終わったが、受理（Accepted、Ready for distribution）まで約36時間半かかった（2026-11-08 15:48〜11-10 04:18）。ビルドはその間、結果を待ち続け、受理の後に公証チケットをアプリに添付した。2026-11-11の提出は、アプリのZIPもDMGも2分ほどで受理された。審査記録の警告は、3回とも0件 |
+| 配布物 | DMGのチェックサム検証に成功。DMGファイルそのものも、アプリと同じチームのDeveloper IDの署名とタイムスタンプを持ち、公証チケットの検証に合格。DMGとZIPから取り出したアプリも、厳密な署名検証、公証チケットの検証（`stapler validate`）、ビルド時と同じ検査に合格。ビルドしたアプリと、DMG・ZIPから取り出したアプリの3,070項目（フォルダと公証チケットを含む）は、内容・権限・シンボリックリンクが一致 |
+| ビルド環境の情報 | 修正前は、Next.jsのサーバー設定2ファイルの7か所に、ビルドしたMacのホームフォルダのパス（アカウント名を含む）が入っていた。修正後は、アプリ、DMGの中身（隠しファイルを含む）、ZIPの中身のどこにもない。ビルド中の検査も、準備したファイルと署名前のアプリ全体で合格。公証の前に準備したファイルと、公証後のアプリ・DMGの中身・ZIPの中身・DMGとZIPのファイルそのものも調べ、ビルドしたMacのアカウント名・メールアドレス・氏名・コンピューター名は含まれていなかった |
+| 配布版テスト | 公証前の署名したアプリと、そのDMGから取り出したアプリで12件ずつ成功。公証後のDMGから取り出し、日本語・空白を含むパスに置いたアプリでも12件成功 |
+| Gatekeeper | 公証前は「公証されていないDeveloper ID」として拒否。公証後は、ビルドしたアプリと、DMG・ZIPから取り出してダウンロード時と同じquarantine属性を付けたアプリが、「公証済みのDeveloper ID」として許可された。DMGファイルそのものも、quarantine属性を付けたコピーを含めて「公証済みのDeveloper ID」として許可された。DMGを署名していなかった2026-11-10の配布物では、DMGへの判定は「使える署名なし」だった |
+| 検査の確認 | 未署名のアプリを拒否。同梱のNode.jsにデバッグ用の権限（get-task-allow）を足して封印し直したアプリも拒否。後者は `codesign --verify --deep --strict` には合格する。修正前に準備したファイルからのpackは、パスが残る2ファイルを示して止まる。署名だけして公証していないDMGは、公証後の検査で拒否される。署名済みのDMGをもう一度署名しようとすると止まる |
+| ダウンロードの再現 | DMGのコピーに、ブラウザがダウンロード時に付けるのと同じ形のquarantine属性を付けてマウントし、アプリをフォルダへコピーした（`ditto`）。コピーしたアプリは、同梱のNode.jsを含むすべての項目がquarantine属性を受け継いだ。DMGとアプリはGatekeeperに「公証済みのDeveloper ID」として許可され、アプリはAppleの配布前チェック（`syspolicy_check distribution`）にも合格した（アプリ全体も中身も「公証済み」）。このアプリで配布版テスト12件が成功し、テストの前後でアプリの中身は変わらなかった。テストはアプリを直接起動するので、Finderから初めて開くときの確認ダイアログは出ない |
 | 署名の省略 | プルリクエストと判定され、electron-builderが署名を省いたビルドは、検査で止まり、DMG・ZIPを作らない |
 
 ライブラリの検証を有効にしたまま、同梱のNode.jsがJITの権限だけでサーバーを起動し、SQLiteを読み込めることを確認しました。
@@ -85,13 +88,13 @@ npm run test:desktop:packaged
 npm run desktop:dist
 ```
 
-署名する場合は、Developer ID Application証明書が入ったMacで、packとdistに `FUSSENN_MAC_SIGN=1` を指定します。詳細は [デスクトップ版の説明](desktop.md#macの署名と公証) を参照してください。現行版の配布物は `Fussenn-<version>-mac-arm64.dmg`・`Fussenn-<version>-mac-arm64.zip`、アプリは `Fussenn.app` です。DMG/ZIP生成後は、展開した `Fussenn.app/Contents/MacOS/Fussenn` を `FUSSENN_DESKTOP_EXE` に指定して `npm run test:desktop` を実行します。テストは保存先を分離します。ネイティブ画面を別途確認するときも、検証用の `FUSSENN_DATA_DIR` を指定してください。
+署名する場合は、Developer ID Application証明書が入ったMacで、packとdistに `FUSSENN_MAC_SIGN=1` を指定します。公証する場合は、distに `FUSSENN_MAC_NOTARIZE=1` と認証情報も指定します。詳細は [デスクトップ版の説明](desktop.md#macの署名と公証) を参照してください。現行版の配布物は `Fussenn-mac-arm64.dmg`・`Fussenn-mac-arm64.zip`、アプリは `Fussenn.app` です。DMG/ZIP生成後は、展開した `Fussenn.app/Contents/MacOS/Fussenn` を `FUSSENN_DESKTOP_EXE` に指定して `npm run test:desktop` を実行します。テストは保存先を分離します。ネイティブ画面を別途確認するときも、検証用の `FUSSENN_DATA_DIR` を指定してください。
 
 ## 残る確認
 
 - Intel Macの画面を使った実機操作。ビルドと配布版テストは、2026-10-18にGitHub ActionsのIntel Mac（`macos-15-intel`）とRosetta 2で成功しています。
-- 公証と、ダウンロードしたアプリとしてのGatekeeper確認。署名は2026-11-08に確認しましたが、公証チケットはまだありません。quarantineやOS保護設定は変更していません。
-- 署名したIntel（x64）版の確認。JITだけの権限で動くことは、Apple Siliconでだけ確かめています。
+- Finderから初めて開いたときの確認ダイアログを、人が見て「開く」を押す確認。ダウンロードを再現したDMGとアプリで、Gatekeeperの判定・Appleの配布前チェック・配布版テストは確認しました。ただし、quarantine属性は手で付けたもので、ブラウザで実際にダウンロードしたファイルではありません。DMGの中から直接開いた場合も確認していません。OSの保護設定は変更していません。
+- Intel（x64）版も配る場合は、署名・公証したIntel版の確認。同じ証明書と認証情報で作れるので、費用はかかりません。JITだけの権限で動くことは、Apple Siliconでだけ確かめています。
 - 実Codexのログイン・AI生成、実OSの日本語IMEによる変換中の終了、Dockからの再表示は今回の確認範囲に含みません。日本語の入力・保存と、合成したcompositionイベントによる原稿保持は確認しています。
 
 GitHubへの公開・リリース配布、普段利用するアプリのインストール先への上書きは行っていません。

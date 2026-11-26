@@ -12,11 +12,16 @@ AIの回答だけでなく、Markdown・テキスト・PDFの資料にも付箋�
 
 - **文脈付きの付箋**：選択した文章についてメモ・AIへの質問。色、移動、折りたたみ、曲線の調整、一覧表示。
 - **資料を読む**：Markdown・テキスト・テキスト入りPDFの取り込み。本文はFussenn内にコピーして保存。OCRは対象外。
-- **原稿を書く**：直接編集、Markdownプレビュー、目次、文字数、AI原稿案の置換・挿入、履歴の復元。
+- **原稿を書く**：直接編集、Markdownプレビュー、目次、文字数、AIの置き換え案と原稿案の置換・挿入、履歴の復元。
 - **整理して持ち出す**：会話のフォルダ整理、Obsidian向け相互リンク付きMarkdown、全体バックアップと復元。
-- **AIの接続を選ぶ**：Codex / ChatGPT、OpenAI API、OpenAI互換サーバー、操作確認用Mock。
+- **AIの接続を選ぶ**：Codex / ChatGPT、OpenAI API、OpenAI互換サーバー、操作確認用Mock。質問ごとに考える深さ（エフォート）とWeb検索を選べます（互換サーバーを除く）。
+- **見やすく**：ダークモードと、4段階の文字の大きさ。
 
 ![原稿の編集とMarkdownプレビュー](docs/manuscript-preview.png)
+
+## ダウンロード
+
+Apple Silicon Mac用のDMGとWindows用のインストーラーを、[ダウンロードページ](https://omoshironics.com/fussenn/) と [GitHubのリリース](https://github.com/sibucho86/Fussenn/releases/latest) で配布しています。Mac版はAppleの公証を受けています。Windows版は署名していないため、初めて起動するときに警告が出ます（[起動時の警告](docs/desktop.md#windowsで使う)）。Codexで使う場合は、Codex CLIとChatGPTへのログインが別途必要です。
 
 ## まずローカルで試す
 
@@ -65,12 +70,12 @@ npm run desktop
 
 | 環境 | 状況 |
 | --- | --- |
-| Windows x64 | 名称変更後、GitHub Actionsでビルド・ブラウザ版テスト・配布版テストと、検証専用インストーラーでの導入・更新・削除を確認（配布用EXEを実機で手動インストールした確認は旧名称時）。インストーラーは未署名。 |
-| macOS Apple Silicon | 名称変更後もDMG・ZIP生成と配布版テストを確認済み（ローカルとGitHub Actions。実機操作の確認は旧名称時）。Developer IDによる署名は、署名を指定したローカルのビルドで確認済み。CIの成果物は未署名で、公証は未実施。 |
-| macOS Intel | GitHub ActionsのIntel Macと、Apple Silicon上のRosetta 2で、ビルドと配布版テストを確認。画面を使った実機操作、署名したIntel版の確認、公証は未実施。 |
+| Windows x64 | 名称変更後、GitHub Actionsでビルド・ブラウザ版テスト・配布版テストと、検証専用インストーラーでの導入・更新・削除を確認（配布用EXEを実機で手動インストールした確認は旧名称時）。インストーラーには署名しない（[起動時の警告](docs/desktop.md#windowsで使う)）。 |
+| macOS Apple Silicon | 名称変更後もDMG・ZIP生成と配布版テストを確認済み（ローカルとGitHub Actions。実機操作の確認は旧名称時）。Developer IDによる署名と公証は、指定したローカルのビルドで、アプリとDMGの両方について確認済み。CIの成果物は未署名・未公証。 |
+| macOS Intel | GitHub ActionsのIntel Macと、Apple Silicon上のRosetta 2で、ビルドと配布版テストを確認。画面を使った実機操作は未実施。署名・公証は、Intel版も配る場合に行う。 |
 | Linux | GitHub Actions（Ubuntu 24.04）で、ブラウザ版テスト、デスクトップ版のビルドと展開したアプリでの配布版テスト、AppImage生成を確認。AppImageからの起動と実機での確認は未実施。 |
 
-GitHubでの一般公開・リリース配布はまだ行っていません。アプリの生成方法と確認範囲は [デスクトップ版](docs/desktop.md)、Macの実機確認と署名の制限は [Macの検証記録](docs/mac-validation.md) を参照してください。生成したデスクトップ版にはNode.jsを同梱します。Codex Providerを使う場合は、Codex CLIとChatGPTログインが別途必要です。
+配布しているのは、Apple Silicon Mac用のDMGとWindows用のインストーラーです（[ダウンロード](#ダウンロード)）。アプリの生成方法と確認範囲は [デスクトップ版](docs/desktop.md)、Macの実機確認と署名の制限は [Macの検証記録](docs/mac-validation.md) を参照してください。生成したデスクトップ版にはNode.jsを同梱します。Codex Providerを使う場合は、Codex CLIとChatGPTログインが別途必要です。
 
 ## 保存とプライバシー
 
@@ -93,7 +98,7 @@ lint・型検査・通常テスト・配布ツールの検査・本番ビルド�
 - [使い方とAI接続](docs/usage.md)
 - [原稿編集](docs/manuscript.md)・[プレビューと目次](docs/manuscript-preview.md)・[PDF取り込み](docs/pdf-import.md)
 - [開発への参加](CONTRIBUTING.md)・[変更履歴](CHANGELOG.md)
-- [公開準備と残作業](docs/open-source-readiness.md)
+- [公開準備と残作業](docs/open-source-readiness.md)・[リリースとダウンロードページ](docs/release.md)
 - [アプリアイコンと製品情報](docs/branding.md)
 
 ## ライセンス

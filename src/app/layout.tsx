@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { WorkspaceRevisionGuard } from "@/components/workspace-revision-guard";
 import { DesktopLifecycle } from "@/components/desktop-lifecycle";
+import { AppearanceSync } from "@/components/appearance-sync";
+import { APPEARANCE_SCRIPT } from "@/lib/appearance";
 
 export const metadata: Metadata = {
   title: "Fussenn — 理解を、余白に。",
@@ -12,5 +14,6 @@ export const metadata: Metadata = {
   },
 };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ja"><body>{children}<WorkspaceRevisionGuard /><DesktopLifecycle /></body></html>;
+  // The head script sets the saved theme and text size on <html> before the first paint.
+  return <html lang="ja" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} /></head><body>{children}<WorkspaceRevisionGuard /><DesktopLifecycle /><AppearanceSync /></body></html>;
 }

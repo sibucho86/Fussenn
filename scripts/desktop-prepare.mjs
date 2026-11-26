@@ -6,6 +6,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from "node:pat
 import { fileURLToPath } from "node:url";
 import { prepareRuntime } from "./desktop-runtime.mjs";
 import { prepareDesktopLicenses } from "./desktop-licenses.mjs";
+import { assertNoHomePaths, scrubNextBuildPaths } from "./desktop-build-paths.mjs";
 import { verifyIcons } from "./icons.mjs";
 
 const require = createRequire(import.meta.url);
@@ -43,6 +44,8 @@ cpSync(standalone, server, { recursive: true, dereference: true, filter: (source
   const path = relative(standalone, source).replaceAll("\\", "/");
   return !path.split("/").some((part) => part.startsWith(".env") || [".git", "cache"].includes(part)) && !/\.(?:db(?:-wal|-shm)?|log|(?:fussenn|sidenote)\.json)$/.test(path);
 } });
+// next build records this checkout's folder in the server config, where it would name the builder's account.
+const recordedPaths = scrubNextBuildPaths(server);
 cpSync(join(root, ".next-desktop", "static"), join(server, ".next-desktop", "static"), { recursive: true });
 if (existsSync(join(root, "public"))) cpSync(join(root, "public"), join(server, "public"), { recursive: true });
 // better-sqlite3 13 ships an N-API prebuild for each supported OS/CPU.
@@ -82,6 +85,7 @@ for (const file of walk(stage)) {
   const path = relative(stage, file);
   if (isAbsolute(path) || path.startsWith("..") || basename(file).startsWith(".env") || /\.(?:db|(?:fussenn|sidenote)\.json)$/.test(file)) throw new Error("Unexpected private file in desktop bundle");
 }
+assertNoHomePaths(stage, { project: [root, ...recordedPaths] });
 console.log(`Desktop prepared: ${process.platform}/${process.arch}, Node ${process.versions.node}`);
 function* walk(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {

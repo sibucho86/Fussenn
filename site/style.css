@@ -1,0 +1,270 @@
+/* Fussenn download page. The page is set like a document Fussenn has annotated: text on the left,
+   notes in the right margin, each joined to its marked word by the dashed line the app draws.
+   Colors come from the app. Only the title uses the Mincho face, as on the app's welcome screen. */
+:root {
+  --paper: #faf9f6;
+  --ink: #252d27;
+  --ink-soft: #5a665d;
+  --rule: #e2e4db;
+  --green: #3f5145;
+  --link: #2d6a4a;
+  --note-bg: #fdf3cd;
+  --note-head: #f6e8b2;
+  --note-line: #e2cd86;
+  --note-ink: #3a331b;
+  --note-soft: #6a5a2a;
+  --mark: #fbe7a3;
+  --mark-line: #c9a94e;
+  --leader: #b59a52;
+  --button: #3f5145;
+  --button-ink: #f6f4ee;
+  --suggested: #3f5145;
+  --suggested-ink: #f6f4ee;
+  --suggested-soft: #dfe6dc;
+  --on-green: #f6f4ee;
+  --on-green-soft: #cfd8cc;
+  --shadow: rgb(70 58 20 / 0.28);
+  --focus: #2d6a4a;
+  --font-display: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", serif;
+  --font-body: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Segoe UI", "Yu Gothic UI", "Meiryo", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --text: 38rem;
+  --margin: 16.5rem;
+  --gap: clamp(2.5rem, 6vw, 5.5rem);
+  --gutter: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #181d1a;
+    --ink: #e9e7e0;
+    --ink-soft: #a9b3a7;
+    --rule: #333c36;
+    --link: #ffe49a;
+    --note-bg: #352f1d;
+    --note-head: #40391f;
+    --note-line: #5d5232;
+    --note-ink: #f3ead0;
+    --note-soft: #d8c88f;
+    --mark: rgb(255 228 154 / 0.24);
+    --mark-line: #d9bd6a;
+    --button: #ffe49a;
+    --button-ink: #2f2a18;
+    --suggested: #ffe49a;
+    --suggested-ink: #2f2a18;
+    --suggested-soft: #5c4f22;
+    --shadow: rgb(0 0 0 / 0.5);
+    --focus: #ffe49a;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.95;
+  letter-spacing: 0.02em;
+  line-break: strict;
+  overflow-wrap: break-word;
+}
+
+/* Selecting text on the page looks like selecting it in the app. */
+::selection { background: #ffe49a; color: #2f2a18; }
+
+img { max-width: 100%; height: auto; }
+
+a { color: var(--link); text-underline-offset: 0.25em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+a, summary { touch-action: manipulation; -webkit-tap-highlight-color: rgb(255 228 154 / 0.45); }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+[id] { scroll-margin-top: 1.5rem; }
+
+code { font-family: var(--font-mono); font-size: 0.86em; letter-spacing: 0; overflow-wrap: anywhere; }
+
+h1, h2, h3, summary, .lede, figcaption { word-break: auto-phrase; }
+h1, h2, h3 { text-wrap: balance; }
+
+.wrap { width: min(100% - 2 * var(--gutter), calc(var(--text) + var(--gap) + var(--margin))); margin-inline: auto; }
+
+.skip { position: absolute; left: 1rem; top: -4rem; z-index: 10; background: #ffe49a; color: #2f2a18; padding: 0.5rem 1rem; border-radius: 6px; }
+.skip:focus { top: 1rem; }
+
+.masthead { border-bottom: 1px solid var(--rule); }
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1.5rem; padding-block: 0.9rem; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.6rem; margin: 0; }
+.crumbs .org { color: var(--ink-soft); font-size: 0.85rem; text-decoration: none; white-space: nowrap; }
+.crumbs .org:hover { color: var(--ink); text-decoration: underline; }
+.crumbs .sep { color: var(--ink-soft); }
+.brand { flex: none; display: inline-flex; align-items: center; gap: 0.55rem; color: inherit; text-decoration: none; font-weight: 600; font-size: 1.1rem; letter-spacing: 0.01em; }
+.brand span { white-space: nowrap; }
+.brand img { display: block; }
+.nav { display: flex; flex-wrap: wrap; gap: 0.3rem 1.4rem; font-size: 0.9rem; }
+.nav a { color: var(--ink-soft); text-decoration: none; white-space: nowrap; }
+.nav a:hover { color: var(--ink); text-decoration: underline; }
+
+/* The document: text, and beside it a margin that holds the block's notes. */
+.doc { padding-block: clamp(2.5rem, 2rem + 4vw, 5.5rem) clamp(4rem, 3rem + 5vw, 7rem); }
+
+.block {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, var(--text)) minmax(0, var(--margin));
+  column-gap: var(--gap);
+  align-items: start;
+  margin-top: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+}
+.block.intro { margin-top: 0; }
+.text { grid-column: 1; }
+.text > p { margin: 0 0 1em; }
+.text > p:last-child { margin-bottom: 0; }
+.margin { grid-column: 2; display: grid; gap: 0.9rem; align-content: start; }
+
+h1 {
+  margin: 0 0 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.3rem, 1.6rem + 2.8vw, 3.5rem);
+  line-height: 1.35;
+  letter-spacing: 0.05em;
+  font-feature-settings: "palt";
+}
+
+.lede { font-size: clamp(1.04rem, 1rem + 0.25vw, 1.16rem); line-height: 2.05; }
+
+h2 { margin: 0 0 0.9rem; font-size: clamp(1.3rem, 1.15rem + 0.6vw, 1.55rem); line-height: 1.5; letter-spacing: 0.04em; font-weight: 600; }
+
+/* A marked word and its note, drawn like the app's highlight and floating note. */
+.anchor { color: inherit; background: var(--mark); border-bottom: 2px solid var(--mark-line); padding-inline: 0.08em; white-space: nowrap; }
+
+.note {
+  position: relative;
+  z-index: 1;
+  background: var(--note-bg);
+  color: var(--note-ink);
+  border: 1px solid var(--note-line);
+  border-radius: 8px;
+  box-shadow: 0 12px 24px -16px var(--shadow), 0 1px 2px rgb(70 58 20 / 0.08);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  overflow: hidden;
+}
+.note-head {
+  display: flex; align-items: center; gap: 0.45rem; margin: 0; padding: 0.5rem 0.8rem;
+  background: var(--note-head); border-bottom: 1px solid var(--note-line);
+  color: var(--note-soft); font-size: 0.8rem; font-weight: 600; line-height: 1.5;
+}
+.note-head svg { flex: none; }
+.note-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note > p:not(.note-head) { margin: 0.7rem 0.85rem; }
+.note code { font-size: 0.82em; }
+.note a { color: var(--note-ink); }
+.note-inline { margin: 0 0 1.1rem; }
+
+.choices { display: grid; gap: 0.5rem; margin: 0.75rem 0.75rem 0; }
+.choice {
+  display: grid; gap: 0.05rem; padding: 0.6rem 0.8rem; border-radius: 7px; line-height: 1.5;
+  color: var(--note-ink); text-decoration: none; background: rgb(255 255 255 / 0.5); border: 1px solid var(--note-line);
+}
+.choice strong { font-size: 0.95rem; }
+.choice span { font-size: 0.78rem; color: var(--note-soft); }
+.choice:hover { background: rgb(255 255 255 / 0.8); }
+/* With a guess about the visitor's computer, its download leads. Without one, both look the same. */
+.choice.is-suggested { background: var(--suggested); border-color: var(--suggested); color: var(--suggested-ink); }
+.choice.is-suggested span { color: var(--suggested-soft); }
+.choice.is-suggested:hover { filter: brightness(1.1); }
+@media (prefers-color-scheme: dark) {
+  .choice { background: rgb(0 0 0 / 0.18); }
+  .choice:hover { background: rgb(0 0 0 / 0.3); }
+}
+.note-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 0.8rem; color: var(--note-soft); font-size: 0.78rem; }
+.note-mobile { font-size: 0.85rem; }
+
+.leader { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.leader path { fill: none; stroke: var(--leader); stroke-width: 1.5; stroke-dasharray: 4 4; stroke-linecap: round; }
+.leader circle { fill: var(--leader); }
+
+/* Screenshots. */
+figure { margin: 0; }
+.shot { margin-top: clamp(2rem, 1.5rem + 2vw, 3rem); }
+.shot img, .pair img { display: block; width: 100%; border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 24px 48px -32px var(--shadow); }
+figcaption { margin-top: 0.7rem; font-size: 0.85rem; line-height: 1.7; color: var(--ink-soft); }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2rem); margin-top: clamp(2rem, 1.5rem + 2vw, 3rem); }
+.pair img { aspect-ratio: 4 / 3; object-fit: cover; }
+@media (prefers-color-scheme: dark) {
+  .shot img, .pair img { filter: brightness(0.9); }
+}
+
+/* AI connections. */
+.providers { margin: 1.25rem 0 0; }
+.providers dt { font-weight: 600; margin-top: 1rem; }
+.providers dd { margin: 0.15rem 0 0; color: var(--ink-soft); }
+.more { margin-top: 1.4rem; font-size: 0.95rem; }
+
+/* Downloads: two columns, Mac and Windows, each starting with its button. */
+.downloads { margin-top: clamp(4.5rem, 3rem + 6vw, 8rem); padding-top: clamp(2rem, 1.5rem + 2vw, 3rem); border-top: 1px solid var(--rule); }
+.downloads > h2 { margin-bottom: 0.3rem; }
+.release { margin: 0; color: var(--ink-soft); }
+.platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem var(--gap); margin-top: 2rem; align-items: start; }
+.platform h3 { margin: 0 0 0.8rem; font-size: 1.25rem; line-height: 1.4; letter-spacing: 0.04em; }
+.platform > p { margin: 0 0 0.9rem; font-size: 0.95rem; }
+.platform .file { display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; margin: 0.6rem 0 1rem; font-size: 0.85rem; color: var(--ink-soft); }
+
+.button {
+  display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1.25rem; border-radius: 9px;
+  background: var(--button); color: var(--button-ink); font-weight: 600; text-decoration: none; line-height: 1.4;
+}
+.button:hover { filter: brightness(1.12); }
+
+.howto { margin: 0 0 1.1rem; padding-left: 1.4em; font-size: 0.95rem; }
+.howto li + li { margin-top: 0.3rem; }
+
+.hash { font-size: 0.88rem; }
+.hash p { margin: 0.5rem 0 0; }
+.digest { display: block; padding: 0.55rem 0.7rem; border-radius: 6px; border: 1px solid var(--rule); word-break: break-all; font-size: 0.8rem; }
+
+.after { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem var(--gap); margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem); }
+.after h3 { margin: 0 0 0.3rem; font-size: 1rem; }
+.after p { margin: 0; color: var(--ink-soft); font-size: 0.93rem; }
+
+/* Disclosure: the same open and close marks for the questions and the checksums. */
+.faq summary, .hash summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker, .hash summary::-webkit-details-marker { display: none; }
+.faq summary::after, .hash summary::after { content: "＋"; flex: none; color: var(--ink-soft); font-weight: 400; }
+.faq details[open] summary::after, .hash[open] summary::after { content: "－"; }
+.hash summary { justify-content: flex-start; width: fit-content; color: var(--ink-soft); }
+
+/* Questions. */
+.faq { max-width: var(--text); margin-top: clamp(4rem, 3rem + 5vw, 7rem); }
+.faq > h2 { margin-bottom: 0.6rem; }
+.faq details { border-top: 1px solid var(--rule); }
+.faq details:last-child { border-bottom: 1px solid var(--rule); }
+.faq summary { padding-block: 0.95rem; font-weight: 600; }
+.faq details p { margin: 0 0 1.1rem; color: var(--ink-soft); }
+
+/* Footer, in the icon's green. */
+.foot { --focus: #ffe49a; --link: var(--on-green); background: var(--green); color: var(--on-green); padding-block: 2.75rem; }
+.foot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; gap: 1.5rem 2rem; }
+.foot-brand { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-weight: 600; }
+.foot-info p { margin: 0 0 0.7rem; }
+.foot-links { list-style: none; margin: 0 0 1.2rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1.3rem; }
+.foot-note { font-size: 0.82rem; color: var(--on-green-soft); }
+
+/* Narrow screens: notes follow their text, and the lines are left out. */
+@media (max-width: 860px) {
+  .block { grid-template-columns: minmax(0, 1fr); }
+  .margin { grid-column: 1; margin-top: 1.1rem; max-width: 24rem; }
+  .leader { display: none; }
+  .platforms, .after { grid-template-columns: minmax(0, 1fr); }
+  .foot-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .pair { grid-template-columns: minmax(0, 1fr); }
+}

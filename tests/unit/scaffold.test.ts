@@ -11,7 +11,7 @@ describe("foundation", () => {
   });
   it("streams deterministic text without external requests", async () => {
     const chunks: string[] = [];
-    const result = await new MockProvider(0).generate({ ownerType: "conversation", ownerId: "test", model: "mock", userText: "MCP", messages: [] }, (e) => chunks.push(e.text));
+    const result = await new MockProvider(0).generate({ ownerType: "conversation", ownerId: "test", model: "mock", userText: "MCP", messages: [] }, (e) => { if (e.type === "text_delta") chunks.push(e.text); });
     expect(chunks.length).toBeGreaterThan(5);
     expect(chunks.join("")).toBe(result.text);
     expect(result.text).toContain("Resource");

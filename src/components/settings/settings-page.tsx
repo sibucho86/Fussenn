@@ -7,6 +7,7 @@ import type { ProviderKind, PublicSettings, Settings } from "@/lib/types";
 import { api } from "@/lib/api";
 import { CodexSettings } from "./codex-settings";
 import { BackupSettings } from "./backup-settings";
+import { AppearanceSettings } from "./appearance-settings";
 
 const labels: Record<ProviderKind, string> = { codex: "Codex · ChatGPT", openai: "OpenAI API", "openai-compatible": "OpenAI Compatible", mock: "Mock · デモ" };
 export default function SettingsPage() {
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   return <main className="settings-page"><header className="settings-header"><Link href="/" className="brand"><BrandMark /><span>Fussenn</span></Link><Link href="/" className="back-link"><ArrowLeft size={14} />ワークスペースへ戻る</Link></header>
     <div className="settings-content"><span className="eyebrow">MAKE ROOM FOR YOUR CURIOSITY</span><h1><Settings2 size={26} strokeWidth={1.3} />ワークスペースの設定</h1><p className="settings-lead">使いたいAIを選んで、自分のペースで理解を深めましょう。</p>
       {error && <div className="settings-error" role="alert">{error}</div>}
+      <AppearanceSettings />
       {!settings ? <p className="loading-state">設定を読み込んでいます…</p> : <>
         <section className="settings-card"><div className="settings-card-title"><span className="settings-number">01</span><div><h2>新しい会話のデフォルト</h2><p>Providerとモデルは、会話を始めると固定されます。付箋も同じ設定を使います。</p></div></div>
           <label className="setting-field"><span>Provider</span><select aria-label="デフォルトProvider" value={settings.defaultProvider} onChange={(e) => change({ defaultProvider: e.target.value as ProviderKind })}>{Object.entries(labels).filter(([p]) => p !== "mock" || settings.mockEnabled).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>

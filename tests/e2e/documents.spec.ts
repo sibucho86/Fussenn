@@ -168,7 +168,7 @@ test("reads without AI configuration, configures note AI and refuses provider ch
     document = await (await request.post("/api/documents", { data: { fileName: "AI未設定の資料.md", content: "# 資料\n\n設定前でも読める資料です。" } })).json();
   } finally { await request.patch("/api/settings", { data: { defaultProvider: settings.defaultProvider, openaiModel: settings.openaiModel } }); }
   await page.goto(`/?chat=${document!.id}`);
-  await expect(page.locator(".document-dock")).toContainText("AIは未設定");
+  await expect(page.getByRole("group", { name: "付箋AI", exact: true })).toContainText("未設定メモだけでも使えます");
   await selectInDocument(page, "設定前でも読める資料");
   const note = page.getByTestId("floating-note");
   await note.getByRole("button", { name: "AIに聞く", exact: true }).click();
