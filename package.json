@@ -84,7 +84,7 @@
     "drizzle-kit": "^0.31.11",
     "electron": "44.10.2",
     "electron-builder": "26.18.0",
-    "eslint": "^9.39.4",
+    "eslint": "^10.14.0",
     "eslint-config-next": "^16.4.5",
     "jsdom": "^28.1.0",
     "resedit": "1.7.2",
